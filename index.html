@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>State machine analyzer</title>
+    <style>
+        g.graph--node_valid > rect {
+            fill: #00ff00;
+        }
+
+        g.graph--node_invalid > rect {
+            fill: #ff0000;
+        }
+
+        text {
+            font-weight: 300;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 14px;
+        }
+
+        .node rect {
+            stroke: #999;
+            fill: #fff;
+            stroke-width: 1.5px;
+        }
+
+        .edgePath path {
+            stroke: #333;
+            stroke-width: 1.5px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>This is a Heading</h1>
+<p>This is a paragraph.</p>
+
+<svg id="stateMachineSvg" width="5000" height="10000">
+    
+</svg>
+
+<script src="dest/js/bundle.js"></script>
+</body>
+</html>

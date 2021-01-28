@@ -1,0 +1,20 @@
+{
+  "name": "state-machine-analyzer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/js/main.js",
+  "dependencies": {
+    "@dagrejs/graphlib": "2.1.4",
+    "dagre-d3": "0.6.4",
+    "d3": "5.16"
+  },
+  "devDependencies": {
+    "browserify": "17.0.0"
+  },
+  "scripts": {
+    "build": "browserify src/js/main.js -o dest/js/bundle.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "shnax0210@gmail.com",
+  "license": "MIT"
+}

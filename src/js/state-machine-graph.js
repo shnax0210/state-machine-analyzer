@@ -53,16 +53,19 @@ function createStateLabel(state, offset) {
         .join("\n");
 }
 
-function addStatesToGraph(graph, states, nodeClass) {
-    if (!states || !Object.entries(states).length) {
+function buildStateCssClass(stateMark) {
+    return `graph--node_${stateMark.color}`
+}
+
+function addStatesToGraph(graph, states) {
+    if (!states) {
         return;
     }
 
-    Object.entries(states)
-        .forEach(idToState => graph.setNode(idToState[0], {
-            label: createStateLabel(idToState[1]),
-            class: nodeClass
-        }));
+    states.forEach(state => graph.setNode(state.id, {
+        label: createStateLabel(state.stateObject),
+        class: buildStateCssClass(state.mark)
+    }));
 }
 
 function addTransactionToGraph(transaction, graph) {
@@ -80,8 +83,7 @@ function addTransactionsToGraph(graph, stateMachine) {
 function createStateMachineGraph(stateMachine) {
     const graph = new dagreD3.graphlib.Graph().setGraph({})
 
-    addStatesToGraph(graph, stateMachine.validStates, "graph--node_valid")
-    addStatesToGraph(graph, stateMachine.invalidStates, "graph--node_invalid")
+    addStatesToGraph(graph, stateMachine.states)
     addTransactionsToGraph(graph, stateMachine);
 
     return graph;
@@ -91,40 +93,4 @@ function showStateMachineGraph(svgSelector, stateMachine) {
     renderGraph(svgSelector, createStateMachineGraph(stateMachine));
 }
 
-const stateMachineExample = {
-    validStates: {
-        "id1": {
-            user: {
-                id: "user1",
-                name: "Ivan"
-            },
-            product: "product1"
-        },
-        "id2": {
-            user: null,
-            product: null
-        }
-    },
-    invalidStates: {
-        "id3": {
-            user: null,
-            product: "product1"
-        }
-    },
-    transactions: [
-        {
-            name: "Login",
-            from: "id2",
-            to: "id1"
-        },
-        {
-            name: "Logout",
-            from: "id1",
-            to: "id2"
-        },
-
-    ]
-}
-
 exports.showStateMachineGraph = showStateMachineGraph;
-exports.stateMachineExample = stateMachineExample;

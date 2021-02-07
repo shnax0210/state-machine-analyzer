@@ -49215,6 +49215,8 @@ const buildStates = require('./states-builder').buildStates;
 const selectionsTypes = require('./states-builder').selectionsTypes;
 const buildTransactions = require('./transactions-builder').buildTransactions;
 const showStateMachineGraph = require('./state-machine-graph').showStateMachineGraph;
+const markStates = require('./states-marker').markStates;
+
 
 const userIds = ["user1", "user2"]
 const products = ["product1", "product2"]
@@ -49294,10 +49296,10 @@ const events = [
 ]
 
 
-let states = buildStates(statesDescription);
+let states = markStates(buildStates(statesDescription));
 
 const stateMachine = {
-    validStates: states,
+    states: states,
     transactions: buildTransactions(events, states)
 }
 
@@ -49305,7 +49307,7 @@ console.log(JSON.stringify(stateMachine));
 
 showStateMachineGraph("#stateMachineSvg", stateMachine);
 
-},{"./state-machine-graph":351,"./states-builder":352,"./transactions-builder":353}],351:[function(require,module,exports){
+},{"./state-machine-graph":351,"./states-builder":352,"./states-marker":353,"./transactions-builder":354}],351:[function(require,module,exports){
 const d3 = require('d3');
 const dagreD3 = require('dagre-d3');
 
@@ -49361,16 +49363,19 @@ function createStateLabel(state, offset) {
         .join("\n");
 }
 
-function addStatesToGraph(graph, states, nodeClass) {
-    if (!states || !Object.entries(states).length) {
+function buildStateCssClass(stateMark) {
+    return `graph--node_${stateMark.color}`
+}
+
+function addStatesToGraph(graph, states) {
+    if (!states) {
         return;
     }
 
-    Object.entries(states)
-        .forEach(idToState => graph.setNode(idToState[0], {
-            label: createStateLabel(idToState[1]),
-            class: nodeClass
-        }));
+    states.forEach(state => graph.setNode(state.id, {
+        label: createStateLabel(state.stateObject),
+        class: buildStateCssClass(state.mark)
+    }));
 }
 
 function addTransactionToGraph(transaction, graph) {
@@ -49388,8 +49393,7 @@ function addTransactionsToGraph(graph, stateMachine) {
 function createStateMachineGraph(stateMachine) {
     const graph = new dagreD3.graphlib.Graph().setGraph({})
 
-    addStatesToGraph(graph, stateMachine.validStates, "graph--node_valid")
-    addStatesToGraph(graph, stateMachine.invalidStates, "graph--node_invalid")
+    addStatesToGraph(graph, stateMachine.states)
     addTransactionsToGraph(graph, stateMachine);
 
     return graph;
@@ -49399,43 +49403,7 @@ function showStateMachineGraph(svgSelector, stateMachine) {
     renderGraph(svgSelector, createStateMachineGraph(stateMachine));
 }
 
-const stateMachineExample = {
-    validStates: {
-        "id1": {
-            user: {
-                id: "user1",
-                name: "Ivan"
-            },
-            product: "product1"
-        },
-        "id2": {
-            user: null,
-            product: null
-        }
-    },
-    invalidStates: {
-        "id3": {
-            user: null,
-            product: "product1"
-        }
-    },
-    transactions: [
-        {
-            name: "Login",
-            from: "id2",
-            to: "id1"
-        },
-        {
-            name: "Logout",
-            from: "id1",
-            to: "id2"
-        },
-
-    ]
-}
-
 exports.showStateMachineGraph = showStateMachineGraph;
-exports.stateMachineExample = stateMachineExample;
 },{"d3":32,"dagre-d3":33}],352:[function(require,module,exports){
 const selectionsTypes = {
     ANY_OF: "ANY_OF",
@@ -49623,13 +49591,12 @@ function processAttribute(attributePath, attributesStore, statesDescription) {
 }
 
 function addIds(states) {
-    const result = {};
-
-    states.forEach((state, index) => {
-        result[index] = state;
+    return states.map((state, index) => {
+        return {
+            id: index,
+            stateObject: state
+        };
     });
-
-    return result;
 }
 
 function buildStates(statesDescription) {
@@ -49647,7 +49614,7 @@ function buildStates(statesDescription) {
         .forEach(attributes => attributes
             .forEach(attributePath => processAttribute(attributePath, attributesStore, statesDescription)))
 
-    return convertAllArraysToSets(addIds(attributesStore.states));
+    return addIds(attributesStore.states.map(convertAllArraysToSets));
 }
 
 exports.buildStates = buildStates;
@@ -49655,27 +49622,50 @@ exports.selectionsTypes = selectionsTypes;
 },{}],353:[function(require,module,exports){
 const _ = require('lodash');
 
-function findStateId(states, state) {
-    const foundIdToState = Object.entries(states).find(idToState => _.isEqual(idToState[1], state));
-    return foundIdToState ? foundIdToState[0] : null;
+const defaultStateMark = {
+    label: "Valid",
+    color: "lime"
+}
+
+function createStateMark(state, createState) {
+    if (!createState) {
+        return defaultStateMark;
+    }
+
+    const stateMark = createState(state);
+    return stateMark || defaultStateMark;
+}
+
+function markStates(states, createMark) {
+    return states.map(state => {
+        const stateCopy = _.cloneDeep(state)
+        stateCopy.mark = createStateMark(state, createMark);
+        return stateCopy;
+    })
+}
+
+exports.markStates = markStates;
+},{"lodash":322}],354:[function(require,module,exports){
+const _ = require('lodash');
+
+function findStateId(states, stateObject) {
+    const foundState = states.find(state => _.isEqual(state.stateObject, stateObject));
+    return foundState ? foundState.id : null;
 }
 
 function buildTransactions(events, states) {
     const transactions = []
 
-    Object.entries(states).forEach(idToState => {
-        const stateId = idToState[0];
-        const state = idToState[1];
-
+    states.forEach(state => {
         events.forEach(event => {
-            const newState = _.cloneDeep(state)
-            event.handle(newState);
+            const newStateObject = _.cloneDeep(state.stateObject)
+            event.handle(newStateObject);
 
-            if (!_.isEqual(state, newState)) {
+            if (!_.isEqual(state.stateObject, newStateObject)) {
                 transactions.push({
                     name: event.name,
-                    from: stateId,
-                    to: findStateId(states, newState)
+                    from: state.id,
+                    to: findStateId(states, newStateObject)
                 })
             }
         })

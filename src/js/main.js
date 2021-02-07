@@ -2,6 +2,8 @@ const buildStates = require('./states-builder').buildStates;
 const selectionsTypes = require('./states-builder').selectionsTypes;
 const buildTransactions = require('./transactions-builder').buildTransactions;
 const showStateMachineGraph = require('./state-machine-graph').showStateMachineGraph;
+const markStates = require('./states-marker').markStates;
+
 
 const userIds = ["user1", "user2"]
 const products = ["product1", "product2"]
@@ -81,10 +83,10 @@ const events = [
 ]
 
 
-let states = buildStates(statesDescription);
+let states = markStates(buildStates(statesDescription));
 
 const stateMachine = {
-    validStates: states,
+    states: states,
     transactions: buildTransactions(events, states)
 }
 

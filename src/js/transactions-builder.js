@@ -1,26 +1,23 @@
 const _ = require('lodash');
 
-function findStateId(states, state) {
-    const foundIdToState = Object.entries(states).find(idToState => _.isEqual(idToState[1], state));
-    return foundIdToState ? foundIdToState[0] : null;
+function findStateId(states, stateObject) {
+    const foundState = states.find(state => _.isEqual(state.stateObject, stateObject));
+    return foundState ? foundState.id : null;
 }
 
 function buildTransactions(events, states) {
     const transactions = []
 
-    Object.entries(states).forEach(idToState => {
-        const stateId = idToState[0];
-        const state = idToState[1];
-
+    states.forEach(state => {
         events.forEach(event => {
-            const newState = _.cloneDeep(state)
-            event.handle(newState);
+            const newStateObject = _.cloneDeep(state.stateObject)
+            event.handle(newStateObject);
 
-            if (!_.isEqual(state, newState)) {
+            if (!_.isEqual(state.stateObject, newStateObject)) {
                 transactions.push({
                     name: event.name,
-                    from: stateId,
-                    to: findStateId(states, newState)
+                    from: state.id,
+                    to: findStateId(states, newStateObject)
                 })
             }
         })

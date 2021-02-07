@@ -184,13 +184,12 @@ function processAttribute(attributePath, attributesStore, statesDescription) {
 }
 
 function addIds(states) {
-    const result = {};
-
-    states.forEach((state, index) => {
-        result[index] = state;
+    return states.map((state, index) => {
+        return {
+            id: index,
+            stateObject: state
+        };
     });
-
-    return result;
 }
 
 function buildStates(statesDescription) {
@@ -208,7 +207,7 @@ function buildStates(statesDescription) {
         .forEach(attributes => attributes
             .forEach(attributePath => processAttribute(attributePath, attributesStore, statesDescription)))
 
-    return convertAllArraysToSets(addIds(attributesStore.states));
+    return addIds(attributesStore.states.map(convertAllArraysToSets));
 }
 
 exports.buildStates = buildStates;

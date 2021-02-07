@@ -5,10 +5,10 @@ function findStateId(states, stateObject) {
     return foundState ? foundState.id : null;
 }
 
-function buildTransactions(events, states) {
+function buildTransactions(events, states, markLabels) {
     const transactions = []
 
-    states.forEach(state => {
+    states.filter(state => markLabels.includes(state.mark.label)).forEach(state => {
         events.forEach(event => {
             const newStateObject = _.cloneDeep(state.stateObject)
             event.handle(newStateObject);

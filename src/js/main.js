@@ -80,14 +80,33 @@ const events = [
             buyProduct(state, "user2", "product2");
         }
     }
-]
+];
 
 
-let states = markStates(buildStates(statesDescription));
+const marks = [
+    {
+        label: "Valid",
+        color: "lime"
+    },
+    {
+        label: "NoValid",
+        color: "red"
+    }
+];
+
+function selectStateMarkLabel(state) {
+    if (state.id === 10) {
+        return "NoValid"
+    }
+
+    return "Valid";
+}
+
+let states = markStates(buildStates(statesDescription), marks, selectStateMarkLabel);
 
 const stateMachine = {
     states: states,
-    transactions: buildTransactions(events, states)
+    transactions: buildTransactions(events, states, ["Valid"])
 }
 
 console.log(JSON.stringify(stateMachine));

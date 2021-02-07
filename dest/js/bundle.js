@@ -49293,14 +49293,33 @@ const events = [
             buyProduct(state, "user2", "product2");
         }
     }
-]
+];
 
 
-let states = markStates(buildStates(statesDescription));
+const marks = [
+    {
+        label: "Valid",
+        color: "lime"
+    },
+    {
+        label: "NoValid",
+        color: "red"
+    }
+];
+
+function selectStateMarkLabel(state) {
+    if (state.id === 10) {
+        return "NoValid"
+    }
+
+    return "Valid";
+}
+
+let states = markStates(buildStates(statesDescription), marks, selectStateMarkLabel);
 
 const stateMachine = {
     states: states,
-    transactions: buildTransactions(events, states)
+    transactions: buildTransactions(events, states, ["Valid"])
 }
 
 console.log(JSON.stringify(stateMachine));
@@ -49622,24 +49641,38 @@ exports.selectionsTypes = selectionsTypes;
 },{}],353:[function(require,module,exports){
 const _ = require('lodash');
 
-const defaultStateMark = {
-    label: "Valid",
-    color: "lime"
-}
+function selectStateMark(state, allMarks, selectStateMarkLabel) {
+    const selectedMarkLabel = selectStateMarkLabel(state);
 
-function createStateMark(state, createState) {
-    if (!createState) {
-        return defaultStateMark;
+    if (!selectStateMarkLabel) {
+        console.warn("selectStateMarkLabel function does not return mark for state=" + JSON.stringify(state));
+        return null;
     }
 
-    const stateMark = createState(state);
-    return stateMark || defaultStateMark;
+    const selectedMark = allMarks.find(mark => mark.label === selectedMarkLabel);
+
+    if (!selectedMark) {
+        console.warn(`There is no mark with label=${selectedMarkLabel} in all available marks=${JSON.stringify(allMarks)}`);
+        return null;
+    }
+
+    return selectedMark;
 }
 
-function markStates(states, createMark) {
+function markStates(states, allMarks, selectStateMarkLabel) {
+    if (!selectStateMarkLabel) {
+        console.warn("selectMark function is not defined, marks will be not assigned to states")
+        return states;
+    }
+
+    if (!allMarks) {
+        console.warn("There are no defined marks, so they will be not assigned to states")
+        return states;
+    }
+
     return states.map(state => {
         const stateCopy = _.cloneDeep(state)
-        stateCopy.mark = createStateMark(state, createMark);
+        stateCopy.mark = selectStateMark(state, allMarks, selectStateMarkLabel);
         return stateCopy;
     })
 }
@@ -49653,10 +49686,10 @@ function findStateId(states, stateObject) {
     return foundState ? foundState.id : null;
 }
 
-function buildTransactions(events, states) {
+function buildTransactions(events, states, markLabels) {
     const transactions = []
 
-    states.forEach(state => {
+    states.filter(state => markLabels.includes(state.mark.label)).forEach(state => {
         events.forEach(event => {
             const newStateObject = _.cloneDeep(state.stateObject)
             event.handle(newStateObject);

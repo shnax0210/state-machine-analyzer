@@ -17,6 +17,30 @@ function renderGraph(svgSelector, graph) {
     svg.attr("height", graph.graph().height + 40)
 }
 
+function determineArrayEndOffset(array, currentOffset) {
+    if (!array || !array.length) {
+        return "";
+    }
+
+    if (array[0] && typeof array[0] === "object") {
+        return currentOffset;
+    }
+
+    return "";
+}
+
+function formatObject(object, offset) {
+    if (object instanceof Set) {
+        return `[${Array.from(object).map(element => formatObject(element, offset + "\t"))}${determineArrayEndOffset(object, offset)}]`;
+    }
+
+    if (object && typeof object === "object") {
+        return `{\n${createStateLabel(object, offset + "\t")}\n${offset}}\n`
+    }
+
+    return `${object}`
+}
+
 function createStateLabel(state, offset) {
     if (!offset) {
         offset = "";
@@ -24,11 +48,7 @@ function createStateLabel(state, offset) {
 
     return Object.entries(state)
         .map(attributeToValue => {
-            if (attributeToValue[1] && typeof attributeToValue[1] === "object") {
-                return `${attributeToValue[0]}={\n${offset}${createStateLabel(attributeToValue[1], offset + "\t")}\n}\n`;
-            }
-
-            return `${offset}${attributeToValue[0]}=${attributeToValue[1]}`
+            return `${offset}${attributeToValue[0]}=${formatObject(attributeToValue[1], offset)}`
         })
         .join("\n");
 }
@@ -39,20 +59,14 @@ function addStatesToGraph(graph, states, nodeClass) {
     }
 
     Object.entries(states)
-        .forEach(hashToState => graph.setNode(hashToState[0], {
-            label: createStateLabel(hashToState[1]),
+        .forEach(idToState => graph.setNode(idToState[0], {
+            label: createStateLabel(idToState[1]),
             class: nodeClass
         }));
 }
 
 function addTransactionToGraph(transaction, graph) {
-    if (!transaction.transitions || !transaction.transitions.length) {
-        return;
-    }
-
-    transaction.transitions.forEach(transition => {
-        graph.setEdge(transition.from, transition.to, {label: transaction.name});
-    });
+    graph.setEdge(transaction.from, transaction.to, {label: transaction.name});
 }
 
 function addTransactionsToGraph(graph, stateMachine) {
@@ -79,20 +93,20 @@ function showStateMachineGraph(svgSelector, stateMachine) {
 
 const stateMachineExample = {
     validStates: {
-        "hash1": {
+        "id1": {
             user: {
                 id: "user1",
                 name: "Ivan"
             },
             product: "product1"
         },
-        "hash2": {
+        "id2": {
             user: null,
             product: null
         }
     },
     invalidStates: {
-        "hash3": {
+        "id3": {
             user: null,
             product: "product1"
         }
@@ -100,21 +114,13 @@ const stateMachineExample = {
     transactions: [
         {
             name: "Login",
-            transitions: [
-                {
-                    from: "hash2",
-                    to: "hash1"
-                }
-            ]
+            from: "id2",
+            to: "id1"
         },
         {
             name: "Logout",
-            transitions: [
-                {
-                    from: "hash1",
-                    to: "hash2"
-                }
-            ]
+            from: "id1",
+            to: "id2"
         },
 
     ]

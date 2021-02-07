@@ -5,8 +5,9 @@
   "main": "src/js/main.js",
   "dependencies": {
     "@dagrejs/graphlib": "2.1.4",
+    "d3": "5.16",
     "dagre-d3": "0.6.4",
-    "d3": "5.16"
+    "lodash": "4.17.20"
   },
   "devDependencies": {
     "browserify": "17.0.0"

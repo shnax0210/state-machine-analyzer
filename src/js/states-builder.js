@@ -61,6 +61,24 @@ function findAttributeDescription(attributePath, statesDescription) {
     return result;
 }
 
+function convertAllArraysToSets(object) {
+    if (Array.isArray(object)) {
+        return new Set(object.map(element => convertAllArraysToSets(element)))
+    }
+
+    if (object && typeof object === "object") {
+        const result = {};
+
+        Object.entries(object).forEach(keyToValue => {
+            result[keyToValue[0]] = convertAllArraysToSets(keyToValue[1]);
+        })
+
+        return result;
+    }
+
+    return object;
+}
+
 function findAllCombinations(list) {
     let set = [[]],
         listSize = list.length,
@@ -119,7 +137,7 @@ function findUniqAttributes(attributeDescription) {
 }
 
 function hasDuplicatedUniqAttributes(combination, uniqAttribute) {
-    return  (new Set(combination.map(element => element[uniqAttribute]))).size !== combination.length;
+    return (new Set(combination.map(element => element[uniqAttribute]))).size !== combination.length;
 }
 
 function isValidCombination(combination, attributeDescription) {
@@ -165,6 +183,16 @@ function processAttribute(attributePath, attributesStore, statesDescription) {
     throw "Not knows attributeDescription=" + attributeDescription;
 }
 
+function addIds(states) {
+    const result = {};
+
+    states.forEach((state, index) => {
+        result[index] = state;
+    });
+
+    return result;
+}
+
 function buildStates(statesDescription) {
     statesDescription = {
         states: {
@@ -180,7 +208,7 @@ function buildStates(statesDescription) {
         .forEach(attributes => attributes
             .forEach(attributePath => processAttribute(attributePath, attributesStore, statesDescription)))
 
-    return attributesStore.states;
+    return convertAllArraysToSets(addIds(attributesStore.states));
 }
 
 exports.buildStates = buildStates;

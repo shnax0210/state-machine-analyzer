@@ -8,7 +8,7 @@ function findStateId(states, stateObject) {
 function buildTransactions(events, states, markLabels) {
     const transactions = []
 
-    states.filter(state => markLabels.includes(state.mark.label)).forEach(state => {
+    states.filter(state => markLabels.includes(state.mark && state.mark.label)).forEach(state => {
         events.forEach(event => {
             const newStateObject = _.cloneDeep(state.stateObject)
             event.handle(newStateObject);

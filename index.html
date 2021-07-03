@@ -94,6 +94,7 @@
 
         body {
             background-image: url('assets/pexels-negative-space-160107.jpg');
+            color: white;
         }
         
         .main-area {
@@ -101,6 +102,10 @@
             flex-direction: column;
             width: 80%;
             margin: 0 auto;
+        }
+        
+        .introduction-area {
+            text-align: center;
         }
         
         .edit-area__editor {
@@ -117,12 +122,16 @@
             background-color: #008CBA;
             margin: 15px 0;
             height: 30px;
+            color: white;
         }
     </style>
 </head>
 <body>
 
 <div class="main-area">
+    <div class="introduction-area">
+        <h1>State machine analyzer</h1>
+    </div>
     <div class="edit-area">
         <h1>Define all possible states</h1>
         <div id="statesEditor" class="edit-area__editor">return {

@@ -6,6 +6,7 @@ function renderGraph(svgSelector, graph) {
     const render = new dagreD3.render();
 
     const svg = d3.select(svgSelector);
+    svg.selectAll("*").remove();
     const svgGroup = svg.append("g");
 
     // Run the renderer. This is what draws the final graph.

@@ -96,6 +96,13 @@
             width: 50%;
             height: 300px;
         }
+        
+        .graphContainer {
+            width: 80%;
+            height: 500px;
+            overflow: scroll;
+            border:2px solid #000;
+        }
     </style>
 </head>
 <body>
@@ -122,7 +129,7 @@
 <h1>Mark states</h1>
 <div id="markStatesEditor" class="editor">return function(state) {
     if (state.id === 10) {
-    return "NoValid"
+        return "NoValid"
     }
 
     return "Valid";
@@ -194,8 +201,8 @@
 
 <button id="buildGraph">Build graph</button>
 
-<div>
-    <svg id="stateMachineSvg" width="3000" height="10000">
+<div class="graphContainer">
+    <svg id="stateMachineSvg" width="3000" height="100000">
 
     </svg>
 </div>

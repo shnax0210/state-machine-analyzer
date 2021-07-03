@@ -49269,6 +49269,9 @@ function renderGraph(svgSelector, graph) {
     svg.selectAll("*").remove();
     const svgGroup = svg.append("g");
 
+    const zoom = d3.zoom().on("zoom", () => svg.attr("transform", d3.event.transform));
+    svg.call(zoom);
+    
     // Run the renderer. This is what draws the final graph.
     render(svgGroup, graph);
 

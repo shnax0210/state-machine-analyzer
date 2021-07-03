@@ -124,6 +124,15 @@
             height: 30px;
             color: white;
         }
+        
+        .examples-area__list {
+            display: flex;
+        }
+
+        .examples-area__button {
+            background-color: #008CBA;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -132,102 +141,13 @@
     <div class="introduction-area">
         <h1>State machine analyzer</h1>
     </div>
-    <div class="edit-area">
-        <h1>Define all possible states</h1>
-        <div id="statesEditor" class="edit-area__editor">return {
-            users: {
-                selectionType: "ANY_COMBINATION_OF",
-                description: {
-                    id: {
-                        selectionType: "ANY_OF",
-                        unique: true,
-                        values: ["user1", "user2"]
-                    },
-                    products: {
-                        selectionType: "ANY_COMBINATION_OF",
-                        values: ["product1", "product2"]
-                    }
-                }
-            }
-        }
-        </div>
+    <div class="examples-area">
+        <h1>You can check next examples:</h1>
+        <div class="examples-area__list"></div>
     </div>
-
     <div class="edit-area">
-        <h1>Mark states</h1>
-        <div id="markStatesEditor" class="edit-area__editor">return function(state) {
-            if (state.id === 10) {
-                return "NoValid"
-            }
-        
-            return "Valid";
-        }
-        </div>
-    </div>
-
-    <div class="edit-area">
-        <h1>Define possible evens</h1>
-        <div id="eventsEditor" class="edit-area__editor">
-            function registerUser(state, id) {
-                if (Array.from(state.users).map(user => user.id).includes(id)) {
-                    return;
-                }
-        
-                state.users.add({id: id, products: new Set()})
-            }
-        
-            function buyProduct(state, userId, productId) {
-                const users = Array.from(state.users);
-                if (!users.map(user => user.id).includes(userId)) {
-                    return;
-                }
-        
-                users.find(user => user.id === userId).products.add(productId);
-            }
-            
-            
-            return {
-                marks: ["Valid"],
-                events: [
-                    {
-                        name: "RegistrationUser1",
-                        handle: function (state) {
-                            registerUser(state, "user1");
-                        }
-                    },
-                    {
-                        name: "RegistrationUser2",
-                        handle: function (state) {
-                            registerUser(state, "user2");
-                        }
-                    },
-                    {
-                        name: "User1BuyProduct1",
-                        handle: function (state) {
-                            buyProduct(state, "user1", "product1");
-                        }
-                    },
-                    {
-                        name: "User1BuyProduct2",
-                        handle: function (state) {
-                            buyProduct(state, "user1", "product2");
-                        }
-                    },
-                    {
-                        name: "User2BuyProduct1",
-                        handle: function (state) {
-                            buyProduct(state, "user2", "product1");
-                        }
-                    },
-                    {
-                        name: "User2BuyProduct2",
-                        handle: function (state) {
-                            buyProduct(state, "user2", "product2");
-                        }
-                    }
-                ] 
-            }
-        </div>
+        <h1>Please define your state machine here</h1>
+        <div id="editor" class="edit-area__editor"></div>
     </div>
     
     <button id="buildGraph" class="button">Build graph</button>
@@ -241,7 +161,22 @@
 
 <script src="dest/js/bundle.js"></script>
 <script src="lib/ace-builds-master/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="examples.js" type="text/javascript" charset="utf-8"></script>
 <script>
+    function handleExamplesArea(editor) {
+        const examplesAreaElement = document.querySelector(".examples-area__list");
+        
+        function createButton(example) {
+            let btn = document.createElement("button");
+            btn.innerHTML = example.name;
+            btn.className = "examples-area__button"
+            btn.addEventListener("click", () => editor.setValue(example.code));
+            return btn;
+        }
+        
+        examples.forEach(example => examplesAreaElement.append(createButton(example)));
+    }
+    
     function createEditor(elementId) {
         const editor = ace.edit(elementId);
         editor.setTheme("ace/theme/monokai");
@@ -250,26 +185,11 @@
         return editor;
     }
 
-    const statesEditor = createEditor("statesEditor");
-    const markStatesEditor = createEditor("markStatesEditor");
-    const eventsEditor = createEditor("eventsEditor");
-
-    const marks = [
-        {
-            label: "Valid",
-            color: "lime"
-        },
-        {
-            label: "NoValid",
-            color: "red"
-        }
-    ];
+    const editor = createEditor("editor");
+    handleExamplesArea(editor);
 
     document.getElementById("buildGraph").addEventListener("click", () => {
-        stateMachine = createStateMachine(new Function(statesEditor.getValue()),
-            {possibleMarks: marks, markState: new Function(markStatesEditor.getValue())()},
-            new Function(eventsEditor.getValue())());
-
+        const stateMachine = createStateMachine(new Function(editor.getValue())());
         stateMachine.render("#stateMachineSvg");
     });
 </script>

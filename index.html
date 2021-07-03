@@ -92,119 +92,142 @@
             stroke-width: 1.5px;
         }
 
-        .editor {
-            width: 50%;
+        body {
+            background-image: url('assets/pexels-negative-space-160107.jpg');
+        }
+        
+        .main-area {
+            display: flex;
+            flex-direction: column;
+            width: 80%;
+            margin: 0 auto;
+        }
+        
+        .edit-area__editor {
             height: 300px;
         }
         
-        .graphContainer {
-            width: 80%;
+        .graph-area {
             height: 500px;
             overflow: scroll;
             border:2px solid #000;
+        }
+        
+        .button {
+            background-color: #008CBA;
+            margin: 15px 0;
+            height: 30px;
         }
     </style>
 </head>
 <body>
 
-<h1>Define all possible states</h1>
-<div id="statesEditor" class="editor">return {
-    users: {
-        selectionType: "ANY_COMBINATION_OF",
-        description: {
-            id: {
-                selectionType: "ANY_OF",
-                unique: true,
-                values: ["user1", "user2"]
-            },
-            products: {
+<div class="main-area">
+    <div class="edit-area">
+        <h1>Define all possible states</h1>
+        <div id="statesEditor" class="edit-area__editor">return {
+            users: {
                 selectionType: "ANY_COMBINATION_OF",
-                values: ["product1", "product2"]
-            }
-        }
-    }
-}
-</div>
-
-<h1>Mark states</h1>
-<div id="markStatesEditor" class="editor">return function(state) {
-    if (state.id === 10) {
-        return "NoValid"
-    }
-
-    return "Valid";
-}
-</div>
-
-<h1>Define possible evens</h1>
-<div id="eventsEditor" class="editor">
-    function registerUser(state, id) {
-        if (Array.from(state.users).map(user => user.id).includes(id)) {
-            return;
-        }
-
-        state.users.add({id: id, products: new Set()})
-    }
-
-    function buyProduct(state, userId, productId) {
-        const users = Array.from(state.users);
-        if (!users.map(user => user.id).includes(userId)) {
-            return;
-        }
-
-        users.find(user => user.id === userId).products.add(productId);
-    }
-    
-    
-    return {
-        marks: ["Valid"],
-        events: [
-            {
-                name: "RegistrationUser1",
-                handle: function (state) {
-                    registerUser(state, "user1");
-                }
-            },
-            {
-                name: "RegistrationUser2",
-                handle: function (state) {
-                    registerUser(state, "user2");
-                }
-            },
-            {
-                name: "User1BuyProduct1",
-                handle: function (state) {
-                    buyProduct(state, "user1", "product1");
-                }
-            },
-            {
-                name: "User1BuyProduct2",
-                handle: function (state) {
-                    buyProduct(state, "user1", "product2");
-                }
-            },
-            {
-                name: "User2BuyProduct1",
-                handle: function (state) {
-                    buyProduct(state, "user2", "product1");
-                }
-            },
-            {
-                name: "User2BuyProduct2",
-                handle: function (state) {
-                    buyProduct(state, "user2", "product2");
+                description: {
+                    id: {
+                        selectionType: "ANY_OF",
+                        unique: true,
+                        values: ["user1", "user2"]
+                    },
+                    products: {
+                        selectionType: "ANY_COMBINATION_OF",
+                        values: ["product1", "product2"]
+                    }
                 }
             }
-        ] 
-    }
-</div>
+        }
+        </div>
+    </div>
 
-<button id="buildGraph">Build graph</button>
+    <div class="edit-area">
+        <h1>Mark states</h1>
+        <div id="markStatesEditor" class="edit-area__editor">return function(state) {
+            if (state.id === 10) {
+                return "NoValid"
+            }
+        
+            return "Valid";
+        }
+        </div>
+    </div>
 
-<div class="graphContainer">
-    <svg id="stateMachineSvg" width="3000" height="100000">
-
-    </svg>
+    <div class="edit-area">
+        <h1>Define possible evens</h1>
+        <div id="eventsEditor" class="edit-area__editor">
+            function registerUser(state, id) {
+                if (Array.from(state.users).map(user => user.id).includes(id)) {
+                    return;
+                }
+        
+                state.users.add({id: id, products: new Set()})
+            }
+        
+            function buyProduct(state, userId, productId) {
+                const users = Array.from(state.users);
+                if (!users.map(user => user.id).includes(userId)) {
+                    return;
+                }
+        
+                users.find(user => user.id === userId).products.add(productId);
+            }
+            
+            
+            return {
+                marks: ["Valid"],
+                events: [
+                    {
+                        name: "RegistrationUser1",
+                        handle: function (state) {
+                            registerUser(state, "user1");
+                        }
+                    },
+                    {
+                        name: "RegistrationUser2",
+                        handle: function (state) {
+                            registerUser(state, "user2");
+                        }
+                    },
+                    {
+                        name: "User1BuyProduct1",
+                        handle: function (state) {
+                            buyProduct(state, "user1", "product1");
+                        }
+                    },
+                    {
+                        name: "User1BuyProduct2",
+                        handle: function (state) {
+                            buyProduct(state, "user1", "product2");
+                        }
+                    },
+                    {
+                        name: "User2BuyProduct1",
+                        handle: function (state) {
+                            buyProduct(state, "user2", "product1");
+                        }
+                    },
+                    {
+                        name: "User2BuyProduct2",
+                        handle: function (state) {
+                            buyProduct(state, "user2", "product2");
+                        }
+                    }
+                ] 
+            }
+        </div>
+    </div>
+    
+    <button id="buildGraph" class="button">Build graph</button>
+    
+    <div class="graph-area">
+        <svg id="stateMachineSvg" width="3000" height="100000">
+    
+        </svg>
+    </div>
 </div>
 
 <script src="dest/js/bundle.js"></script>

@@ -91,17 +91,148 @@
             stroke: #333;
             stroke-width: 1.5px;
         }
+
+        .editor {
+            width: 50%;
+            height: 300px;
+        }
     </style>
 </head>
 <body>
 
-<h1>This is a Heading</h1>
-<p>This is a paragraph.</p>
+<h1>Define all possible states</h1>
+<div id="statesEditor" class="editor">return {
+    users: {
+        selectionType: "ANY_COMBINATION_OF",
+        description: {
+            id: {
+                selectionType: "ANY_OF",
+                unique: true,
+                values: ["user1", "user2"]
+            },
+            products: {
+                selectionType: "ANY_COMBINATION_OF",
+                values: ["product1", "product2"]
+            }
+        }
+    }
+}
+</div>
 
-<svg id="stateMachineSvg" width="10000" height="10000">
+<h1>Mark states</h1>
+<div id="markStatesEditor" class="editor">return function(state) {
+    if (state.id === 10) {
+    return "NoValid"
+    }
 
-</svg>
+    return "Valid";
+}
+</div>
+
+<h1>Define possible evens</h1>
+<div id="eventsEditor" class="editor">
+    function registerUser(state, id) {
+        if (Array.from(state.users).map(user => user.id).includes(id)) {
+            return;
+        }
+
+        state.users.add({id: id, products: new Set()})
+    }
+
+    function buyProduct(state, userId, productId) {
+        const users = Array.from(state.users);
+        if (!users.map(user => user.id).includes(userId)) {
+            return;
+        }
+
+        users.find(user => user.id === userId).products.add(productId);
+    }
+    
+    
+    return {
+        marks: ["Valid"],
+        events: [
+            {
+                name: "RegistrationUser1",
+                handle: function (state) {
+                    registerUser(state, "user1");
+                }
+            },
+            {
+                name: "RegistrationUser2",
+                handle: function (state) {
+                    registerUser(state, "user2");
+                }
+            },
+            {
+                name: "User1BuyProduct1",
+                handle: function (state) {
+                    buyProduct(state, "user1", "product1");
+                }
+            },
+            {
+                name: "User1BuyProduct2",
+                handle: function (state) {
+                    buyProduct(state, "user1", "product2");
+                }
+            },
+            {
+                name: "User2BuyProduct1",
+                handle: function (state) {
+                    buyProduct(state, "user2", "product1");
+                }
+            },
+            {
+                name: "User2BuyProduct2",
+                handle: function (state) {
+                    buyProduct(state, "user2", "product2");
+                }
+            }
+        ] 
+    }
+</div>
+
+<button id="buildGraph">Build graph</button>
+
+<div>
+    <svg id="stateMachineSvg" width="3000" height="10000">
+
+    </svg>
+</div>
 
 <script src="dest/js/bundle.js"></script>
+<script src="lib/ace-builds-master/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+<script>
+    function createEditor(elementId) {
+        const editor = ace.edit(elementId);
+        editor.setTheme("ace/theme/monokai");
+        editor.session.setMode("ace/mode/javascript");
+
+        return editor;
+    }
+
+    const statesEditor = createEditor("statesEditor");
+    const markStatesEditor = createEditor("markStatesEditor");
+    const eventsEditor = createEditor("eventsEditor");
+
+    const marks = [
+        {
+            label: "Valid",
+            color: "lime"
+        },
+        {
+            label: "NoValid",
+            color: "red"
+        }
+    ];
+
+    document.getElementById("buildGraph").addEventListener("click", () => {
+        stateMachine = createStateMachine(new Function(statesEditor.getValue()),
+            {possibleMarks: marks, markState: new Function(markStatesEditor.getValue())()},
+            new Function(eventsEditor.getValue())());
+
+        stateMachine.render("#stateMachineSvg");
+    });
+</script>
 </body>
 </html>

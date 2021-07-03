@@ -3,112 +3,43 @@ const selectionsTypes = require('./states-builder').selectionsTypes;
 const buildTransactions = require('./transactions-builder').buildTransactions;
 const showStateMachineGraph = require('./state-machine-graph').showStateMachineGraph;
 const markStates = require('./states-marker').markStates;
+const _ = require('lodash');
 
+function createStateMachine(buildStatesDescription, stateMarker, eventsInfo) {
+    function evaluateStates() {
+        if (!buildStatesDescription || !_.isFunction(buildStatesDescription)) {
+            console.warn("Build states description function is not defined or is not a function:" + buildStatesDescription);
+            return {};
+        }
 
-const userIds = ["user1", "user2"]
-const products = ["product1", "product2"]
+        let states = buildStates(buildStatesDescription());
 
-const statesDescription = {
-    users: {
-        selectionType: selectionsTypes.ANY_COMBINATION_OF,
-        description: {
-            id: {
-                selectionType: selectionsTypes.ANY_OF,
-                unique: true,
-                values: userIds
-            },
-            products: {
-                selectionType: selectionsTypes.ANY_COMBINATION_OF,
-                values: products
-            }
+        if (!stateMarker || !_.isFunction(stateMarker.markState)) {
+            console.warn("State marker is not defined or defined in wrong way:" + stateMarker);
+            return states;
+        }
+
+        return markStates(states, stateMarker.possibleMarks, stateMarker.markState);
+    }
+
+    function evaluateTransactions(states) {
+        if (!eventsInfo || !eventsInfo.events) {
+            console.warn("Event builder is not defined or defined in wrong way:" + eventsInfo);
+            return [];
+        }
+
+        return buildTransactions(eventsInfo.events, states, eventsInfo.marks)
+    }
+
+    const stateMachine = {};
+    stateMachine.states = evaluateStates();
+    stateMachine.transactions = evaluateTransactions(stateMachine.states)
+
+    return {
+        render: function (cvgElementId) {
+            showStateMachineGraph(cvgElementId, stateMachine);
         }
     }
 }
 
-
-function registerUser(state, id) {
-    if (Array.from(state.users).map(user => user.id).includes(id)) {
-        return;
-    }
-
-    state.users.add({id: id, products: new Set()})
-}
-
-function buyProduct(state, userId, productId) {
-    const users = Array.from(state.users);
-    if (!users.map(user => user.id).includes(userId)) {
-        return;
-    }
-
-    users.find(user => user.id === userId).products.add(productId);
-}
-
-const events = [
-    {
-        name: "RegistrationUser1",
-        handle: function (state) {
-            registerUser(state, "user1");
-        }
-    },
-    {
-        name: "RegistrationUser2",
-        handle: function (state) {
-            registerUser(state, "user2");
-        }
-    },
-    {
-        name: "User1BuyProduct1",
-        handle: function (state) {
-            buyProduct(state, "user1", "product1");
-        }
-    },
-    {
-        name: "User1BuyProduct2",
-        handle: function (state) {
-            buyProduct(state, "user1", "product2");
-        }
-    },
-    {
-        name: "User2BuyProduct1",
-        handle: function (state) {
-            buyProduct(state, "user2", "product1");
-        }
-    },
-    {
-        name: "User2BuyProduct2",
-        handle: function (state) {
-            buyProduct(state, "user2", "product2");
-        }
-    }
-];
-
-
-const marks = [
-    {
-        label: "Valid",
-        color: "lime"
-    },
-    {
-        label: "NoValid",
-        color: "red"
-    }
-];
-
-function selectStateMarkLabel(state) {
-    if (state.id === 10) {
-        return "NoValid"
-    }
-
-    return "Valid";
-}
-
-let states = markStates(buildStates(statesDescription), marks, selectStateMarkLabel);
-
-const stateMachine = {
-    states: states,
-    transactions: buildTransactions(events, states, ["Valid"])
-}
-
-console.log(JSON.stringify(stateMachine));
-
-showStateMachineGraph("#stateMachineSvg", stateMachine);
+window.createStateMachine = createStateMachine;

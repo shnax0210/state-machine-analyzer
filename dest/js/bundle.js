@@ -49376,8 +49376,8 @@ function buildAttributePaths(object, currentPath = "", result = []) {
         let attributePath = buildAttributePath(currentPath, attributeName);
 
         result.push(attributePath);
-        if (object[attributeName].description) {
-            buildAttributePaths(object[attributeName].description, attributePath, result);
+        if (object[attributeName].objects) {
+            buildAttributePaths(object[attributeName].objects, attributePath, result);
         }
     })
 
@@ -49412,10 +49412,10 @@ function findAttributeDescription(attributePath, statesDescription) {
 
     attributePath.split(".")
         .forEach(pathElement => {
-            if (!result.description) {
+            if (!result.objects) {
                 result = result[pathElement]
             } else {
-                result = result.description[pathElement]
+                result = result.objects[pathElement]
             }
         });
 
@@ -49481,7 +49481,7 @@ function buildAttributeValueObject(attributesStore, attributePath, subAttributeN
 }
 
 function buildAttributesValueObjects(attributeDescription, attributesStore, attributePath) {
-    return Object.keys(attributeDescription.description)
+    return Object.keys(attributeDescription.objects)
         .map(subAttributeName => buildAttributeValueObject(attributesStore, attributePath, subAttributeName));
 }
 
@@ -49492,7 +49492,7 @@ function createObject(attributesCombination) {
 }
 
 function findUniqAttributes(attributeDescription) {
-    return Object.entries(attributeDescription.description)
+    return Object.entries(attributeDescription.objects)
         .filter(entry => entry[1].unique)
         .map(entry => entry[0]);
 }
@@ -49523,7 +49523,7 @@ function processAttribute(attributePath, attributesStore, statesDescription) {
         throw "Not knows selectionType=" + attributeDescription.selectionType;
     }
 
-    if (attributeDescription.description) {
+    if (attributeDescription.objects) {
         const values = cartesianProduct(buildAttributesValueObjects(attributeDescription, attributesStore, attributePath))
             .map(attributesCombination => createObject(attributesCombination));
 
@@ -49538,10 +49538,10 @@ function processAttribute(attributePath, attributesStore, statesDescription) {
             return;
         }
 
-        throw "Not knows selectionType=" + attributeDescription.selectionType;
+        throw "Not known selectionType=" + attributeDescription.selectionType;
     }
 
-    throw "Not knows attributeDescription=" + attributeDescription;
+    throw "Not known attributeDescription=" + attributeDescription;
 }
 
 function addIds(states) {
@@ -49557,7 +49557,7 @@ function buildStates(statesDescription) {
     statesDescription = {
         states: {
             selectionType: selectionsTypes.ANY_OF,
-            description: statesDescription
+            objects: statesDescription
         }
     }
 
@@ -49573,6 +49573,7 @@ function buildStates(statesDescription) {
 
 exports.buildStates = buildStates;
 exports.selectionsTypes = selectionsTypes;
+
 },{}],353:[function(require,module,exports){
 const _ = require('lodash');
 

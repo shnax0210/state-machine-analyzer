@@ -21,7 +21,7 @@ return {
     statesDescription: {
         users: {
             selectionType: "ANY_COMBINATION_OF",
-            description: {
+            objects: {
                 id: {
                     selectionType: "ANY_OF",
                     unique: true,

@@ -163,6 +163,8 @@
 <script src="lib/ace-builds-master/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
 <script src="examples.js" type="text/javascript" charset="utf-8"></script>
 <script>
+    const SAVED_CODE_VARIABLE_NAME = 'savedCode';
+    
     function handleExamplesArea(editor) {
         const examplesAreaElement = document.querySelector(".examples-area__list");
         
@@ -177,10 +179,19 @@
         examples.forEach(example => examplesAreaElement.append(createButton(example)));
     }
     
+    function addCodeSaving(editor) {
+        editor.getSession().on('change', () => window.localStorage.setItem(SAVED_CODE_VARIABLE_NAME, editor.getValue()));
+        
+        const savedCode = window.localStorage.getItem(SAVED_CODE_VARIABLE_NAME);
+        if(savedCode) editor.setValue(savedCode);
+    }
+    
     function createEditor(elementId) {
         const editor = ace.edit(elementId);
         editor.setTheme("ace/theme/monokai");
         editor.session.setMode("ace/mode/javascript");
+
+        addCodeSaving(editor);
 
         return editor;
     }

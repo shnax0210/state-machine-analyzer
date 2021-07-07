@@ -1,4 +1,4 @@
-const examples = [{
+const EXAMPLES = [{
    name: "Users buy products",
    code: `function registerUser(state, id) {
    if (Array.from(state.users).map(user => user.id).includes(id)) {
@@ -34,23 +34,14 @@ return {
             }
         }
    },
-   marks: [{
-            label: "Valid",
-            color: "lime"
-        },
-        {
-            label: "NotValid",
-            color: "red"
-        }
-   ],
    markState: function(state) {
        if (state.id === 10) {
-            return "NotValid"
+            return "Red"
        }
    
-       return "Valid";
+       return "Green";
    },
-   marksThatEventsWillBeAppliedTo: ["Valid"],
+   marksThatEventsWillBeAppliedTo: ["Green"],
    events: [
        {
             name: "RegistrationUser1",

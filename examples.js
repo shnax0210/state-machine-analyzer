@@ -1,6 +1,40 @@
-const EXAMPLES = [{
-   name: "Users buy products",
-   code: `function registerUser(state, id) {
+const EXAMPLES = [
+   {
+      name: "Simple state",
+      code: `/*
+Emulation of working on some ticket/task. 
+
+There is one field status that can be equil to any value from list ["Open", "InProgress", "Done"]. 
+
+Then there are couple of events like: "StartWorking", "CompleteWorking" and "Reopen"
+*/
+
+return {
+    statesDescription: {
+        status: {
+            selectionType: "ANY_OF",
+            values: ["Open", "InProgress", "Done"]
+        }
+   },
+   events: [
+       {
+            name: "StartWorking",
+            handle: (state) => { if(state.status === "Open") state.status = "InProgress" }
+       },
+       {
+            name: "CompleteWorking",
+            handle: (state) => { if(state.status === "InProgress") state.status = "Done" }
+       },
+       {
+            name: "Reopen",
+            handle: (state) => { if(state.status === "Done" || state.status === "InProgress") state.status = "Open" }
+       }
+   ]
+}`
+   },
+   {
+      name: "Users buy products",
+      code: `function registerUser(state, id) {
    if (Array.from(state.users).map(user => user.id).includes(id)) {
        return;
    }

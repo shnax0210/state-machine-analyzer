@@ -1,12 +1,13 @@
 const EXAMPLES = [
    {
-      name: "Simple state",
+      name: "1. Task workflow (simple state)",
       code: `/*
-Emulation of working on some ticket/task. 
+This is first example for emulation of working on some task. 
 
-There is one field status that can be equil to any value from list ["Open", "InProgress", "Done"]. 
+Here we have very simple state that consists from one variable with name "status".
+The "status" can be equally to any value from list ["Open", "InProgress", "Done"]. 
 
-Then there are couple of events like: "StartWorking", "CompleteWorking" and "Reopen"
+This model will be improved in subsequent examples.
 */
 
 return {
@@ -28,6 +29,59 @@ return {
        {
             name: "Reopen",
             handle: (state) => { if(state.status === "Done" || state.status === "InProgress") state.status = "Open" }
+       }
+   ]
+}`
+   },
+   {
+      name: "2. Task workflow (object state)",
+      code: `/*
+This is second example for emulation of working on some task. 
+
+Here state is not just one variable but object named "task".
+This object has two fields: "status" and "assignee".
+The "status" can be equally to any value from list ["Open", "InProgress", "Done"]. 
+The "assignee" can be equally to any value from list ["Nobody", "Somebody"]. 
+
+This model will be improved in subsequent examples.
+*/
+
+return {
+    statesDescription: {
+        task: {
+            selectionType: "ANY_OF",
+            objects: {
+                status: {
+                    selectionType: "ANY_OF",
+                    values: ["Open", "InProgress", "Done"]
+                },
+                assignee: {
+                    selectionType: "ANY_OF",
+                    values: ["Nobody", "Somebody"]
+                }
+            }
+        }
+   },
+   events: [
+       {
+            name: "AssignTask",
+            handle: (state) => { state.task.assignee = "Somebody" }
+       },
+       {
+            name: "UnAssignTask",
+            handle: (state) => { if(state.task.status !== "InProgress") state.task.assignee = "Nobody" }
+       },
+       {
+            name: "StartWorking",
+            handle: (state) => { if(state.task.status === "Open" && state.task.assignee !== "Nobody") state.task.status = "InProgress" }
+       },
+       {
+            name: "CompleteWorking",
+            handle: (state) => { if(state.task.status === "InProgress" && state.task.assignee !== "Nobody") state.task.status = "Done" }
+       },
+       {
+            name: "Reopen",
+            handle: (state) => { if(state.task.status === "Done" || state.task.status === "InProgress") state.task.status = "Open" }
        }
    ]
 }`

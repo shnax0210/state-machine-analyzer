@@ -294,7 +294,7 @@
         }
         
         if(!stateMachineDefinition.marksThatEventsWillBeAppliedTo) {
-            stateMachineDefinition.marksThatEventsWillBeAppliedTo = [DEFAULT_MARK];
+            stateMachineDefinition.marksThatEventsWillBeAppliedTo = AVAILABLE_MARKS.map(mark => mark.label);
         }
         
         const stateMachine = createStateMachine(stateMachineDefinition);

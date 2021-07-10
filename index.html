@@ -152,7 +152,7 @@
         .main-area {
             display: flex;
             flex-direction: column;
-            width: 80%;
+            width: 95%;
             margin: 0 auto;
         }
         
@@ -164,16 +164,39 @@
             height: 350px;
         }
         
-        .graph-area__graph {
-            height: 500px;
-            overflow: hidden;
+        .graph-area {
             border:2px solid #000;
         }
         
-        .button {
+        .graph-area__graph {
+
+        }
+
+        .graph-area__graph_small-screen {
+            height: 500px;
+            overflow: hidden;
+        }
+
+        .graph-area__graph_full-screen {
+            height: 90vh;
+            width: 95vw;
+            overflow: hidden;
+        }
+
+        .graph-area__button {
+            background-color: #008CBA;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            height: 30px;
+            margin: 5px 5px;
+        }
+        
+        .edit-area__button {
             background-color: #008CBA;
             margin: 15px 0;
             height: 30px;
+            width: 100%;
             color: white;
             border: none;
             border-radius: 12px;
@@ -221,12 +244,12 @@
     <div class="edit-area">
         <h1>Please define your state machine here:</h1>
         <div id="editor" class="edit-area__editor"></div>
+        <button class="edit-area__button">Build graph</button>
     </div>
     
-    <button id="buildGraph" class="button">Build graph</button>
-    
     <div class="graph-area">
-        <div class="graph-area__graph"></div>
+        <div class="graph-area__graph graph-area__graph_small-screen"></div>
+        <button class="graph-area__button graph-area__resize-button">Resize graph</button>
     </div>
 </div>
 
@@ -278,32 +301,62 @@
 
         return editor;
     }
+    
+    function addHandlerForResizeButton() {
+        function toggleGraphScreenView(graphElement, classToRemove, classToAdd, otherElementsDisplay) {
+            document.querySelectorAll(".main-area > *").forEach(element => element.style.display = otherElementsDisplay);
+            graphElement.classList.remove(classToRemove);
+            graphElement.classList.add(classToAdd);
+            document.querySelector(".graph-area").style.display = "block";
+            window.scrollTo(0,document.body.scrollHeight);
+        }
+        
+        document.querySelector(".graph-area__resize-button").addEventListener("click", () => {
+            const graphElement = document.querySelector(".graph-area__graph");
+            if(graphElement.classList.contains("graph-area__graph_small-screen")) {
+                toggleGraphScreenView(graphElement, "graph-area__graph_small-screen", "graph-area__graph_full-screen", "none");
+                return;
+            }
+
+            if(graphElement.classList.contains("graph-area__graph_full-screen")) {
+                toggleGraphScreenView(graphElement, "graph-area__graph_full-screen", "graph-area__graph_small-screen", "block");
+                return;
+            }
+
+            throw "Not possible graph element classes state";
+        });
+    }
+    
+    function addHandlerForBuildGraphButton(editor) {
+        document.querySelector(".edit-area__button").addEventListener("click", () => {
+            const stateMachineDefinition = new Function(editor.getValue())();
+            stateMachineDefinition.marks = AVAILABLE_MARKS;
+
+            function decorateMarkState(markState) {
+                if(!markState) {
+                    return () => DEFAULT_MARK;
+                }
+
+                return state => markState(state) || DEFAULT_MARK;
+            }
+
+            stateMachineDefinition.markState = decorateMarkState(stateMachineDefinition.markState)
+
+            if(!stateMachineDefinition.marksThatEventsWillBeAppliedTo) {
+                stateMachineDefinition.marksThatEventsWillBeAppliedTo = AVAILABLE_MARKS.map(mark => mark.label);
+            }
+
+            const stateMachine = createStateMachine(stateMachineDefinition);
+            stateMachine.render(".graph-area__graph");
+        });
+    }
 
     const editor = createEditor("editor");
     handleExamplesArea(editor);
     handleMarks();
 
-    document.getElementById("buildGraph").addEventListener("click", () => {
-        const stateMachineDefinition = new Function(editor.getValue())();
-        stateMachineDefinition.marks = AVAILABLE_MARKS;
-        
-        function decorateMarkState(markState) {
-            if(!markState) {
-                return () => DEFAULT_MARK;
-            }
-            
-            return state => markState(state) || DEFAULT_MARK;
-        }
-
-        stateMachineDefinition.markState = decorateMarkState(stateMachineDefinition.markState)
-        
-        if(!stateMachineDefinition.marksThatEventsWillBeAppliedTo) {
-            stateMachineDefinition.marksThatEventsWillBeAppliedTo = AVAILABLE_MARKS.map(mark => mark.label);
-        }
-        
-        const stateMachine = createStateMachine(stateMachineDefinition);
-        stateMachine.render(".graph-area__graph");
-    });
+    addHandlerForResizeButton();
+    addHandlerForBuildGraphButton(editor);
 </script>
 </body>
 </html>

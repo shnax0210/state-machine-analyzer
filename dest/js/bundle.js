@@ -49284,7 +49284,7 @@ function createSvg(container) {
 }
 
 function adjustGraphSize(graph, svg) {
-    svg.attr("viewBox", `0 -10 ${graph.graph().width + 20} ${graph.graph().height + 20}`)
+    svg.attr("viewBox", `0 -10 ${graph.graph().width + 40} ${graph.graph().height + 40}`)
 }
 
 function renderGraph(containerSelector, graph) {

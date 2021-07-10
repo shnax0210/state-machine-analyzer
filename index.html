@@ -249,7 +249,7 @@
     
     <div class="graph-area">
         <div class="graph-area__graph graph-area__graph_small-screen"></div>
-        <button class="graph-area__button graph-area__resize-button">Resize graph</button>
+        <button class="graph-area__button graph-area__full-screen-button">Full screen ON/OF</button>
     </div>
 </div>
 
@@ -311,7 +311,7 @@
             window.scrollTo(0,document.body.scrollHeight);
         }
         
-        document.querySelector(".graph-area__resize-button").addEventListener("click", () => {
+        document.querySelector(".graph-area__full-screen-button").addEventListener("click", () => {
             const graphElement = document.querySelector(".graph-area__graph");
             if(graphElement.classList.contains("graph-area__graph_small-screen")) {
                 toggleGraphScreenView(graphElement, "graph-area__graph_small-screen", "graph-area__graph_full-screen", "none");

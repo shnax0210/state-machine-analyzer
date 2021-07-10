@@ -289,9 +289,15 @@
         const stateMachineDefinition = new Function(editor.getValue())();
         stateMachineDefinition.marks = AVAILABLE_MARKS;
         
-        if(!stateMachineDefinition.markState) {
-            stateMachineDefinition.markState = () => DEFAULT_MARK;
+        function decorateMarkState(markState) {
+            if(!markState) {
+                return () => DEFAULT_MARK;
+            }
+            
+            return state => markState(state) || DEFAULT_MARK;
         }
+
+        stateMachineDefinition.markState = decorateMarkState(stateMachineDefinition.markState)
         
         if(!stateMachineDefinition.marksThatEventsWillBeAppliedTo) {
             stateMachineDefinition.marksThatEventsWillBeAppliedTo = AVAILABLE_MARKS.map(mark => mark.label);

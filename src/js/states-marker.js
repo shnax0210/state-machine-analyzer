@@ -1,10 +1,10 @@
 const _ = require('lodash');
 
 function selectStateMark(state, allMarks, selectStateMarkLabel) {
-    const selectedMarkLabel = selectStateMarkLabel(state);
+    const selectedMarkLabel = selectStateMarkLabel(state.stateObject);
 
-    if (!selectStateMarkLabel) {
-        console.warn("selectStateMarkLabel function does not return mark for state=" + JSON.stringify(state));
+    if (!selectedMarkLabel) {
+        console.warn("selectStateMarkLabel function does not return mark for state=" + JSON.stringify(state.stateObject));
         return null;
     }
 

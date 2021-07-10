@@ -87,6 +87,78 @@ return {
 }`
    },
    {
+      name: "3. Task workflow (object state with marks)",
+      code: `/*
+This is third example for emulation of working on some task. 
+
+It has same state structure as in previous example.
+But adds "markState" function that marks:
+- inial state where status=Open and assignee=Nobody with blue color;
+- error state where status=InProgress and assignee=Nobody with red color.
+
+Also this example defines "marksThatEventsWillBeAppliedTo" field that 
+overrides default array of marks that all events apply to.
+As we can see marksThatEventsWillBeAppliedTo=["Blue", "Green"]
+so all events will be applied only to states with blue and green color 
+but to states with red colow. In such way you can easily check 
+that there is no transactions that change state to red one.
+
+This model will be improved in subsequent examples.
+*/
+
+return {
+    statesDescription: {
+        task: {
+            selectionType: "ANY_OF",
+            objects: {
+                status: {
+                    selectionType: "ANY_OF",
+                    values: ["Open", "InProgress", "Done"]
+                },
+                assignee: {
+                    selectionType: "ANY_OF",
+                    values: ["Nobody", "Somebody"]
+                }
+            }
+        }
+   },
+   markState: (state) => {
+        if(state.task.status === "Open" && state.task.assignee === "Nobody") {
+            return "Blue";
+        }
+        
+        if(state.task.status === "InProgress" && state.task.assignee === "Nobody") {
+            return "Red";
+        }
+        
+        return "Green";
+   },
+   marksThatEventsWillBeAppliedTo: ["Blue", "Green"],
+   events: [
+       {
+            name: "AssignTask",
+            handle: (state) => { state.task.assignee = "Somebody" }
+       },
+       {
+            name: "UnAssignTask",
+            handle: (state) => { if(state.task.status !== "InProgress") state.task.assignee = "Nobody" }
+       },
+       {
+            name: "StartWorking",
+            handle: (state) => { if(state.task.status === "Open" && state.task.assignee !== "Nobody") state.task.status = "InProgress" }
+       },
+       {
+            name: "CompleteWorking",
+            handle: (state) => { if(state.task.status === "InProgress" && state.task.assignee !== "Nobody") state.task.status = "Done" }
+       },
+       {
+            name: "Reopen",
+            handle: (state) => { if(state.task.status === "Done" || state.task.status === "InProgress") state.task.status = "Open" }
+       }
+   ]
+}`
+   },
+   {
       name: "Users buy products",
       code: `function registerUser(state, id) {
    if (Array.from(state.users).map(user => user.id).includes(id)) {

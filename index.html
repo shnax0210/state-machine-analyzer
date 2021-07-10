@@ -164,9 +164,9 @@
             height: 350px;
         }
         
-        .graph-area {
+        .graph-area__graph {
             height: 500px;
-            overflow: scroll;
+            overflow: hidden;
             border:2px solid #000;
         }
         
@@ -226,9 +226,7 @@
     <button id="buildGraph" class="button">Build graph</button>
     
     <div class="graph-area">
-        <svg id="stateMachineSvg" width="3000" height="100000">
-    
-        </svg>
+        <div class="graph-area__graph"></div>
     </div>
 </div>
 
@@ -304,7 +302,7 @@
         }
         
         const stateMachine = createStateMachine(stateMachineDefinition);
-        stateMachine.render("#stateMachineSvg");
+        stateMachine.render(".graph-area__graph");
     });
 </script>
 </body>

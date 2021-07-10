@@ -1,6 +1,6 @@
 const buildStates = require('./states-builder').buildStates;
 const buildTransactions = require('./transactions-builder').buildTransactions;
-const showStateMachineGraph = require('./state-machine-graph').showStateMachineGraph;
+const renderStateMachineGraph = require('./state-machine-graph').renderStateMachineGraph;
 const markStates = require('./states-marker').markStates;
 const _ = require('lodash');
 
@@ -35,8 +35,8 @@ function createStateMachine(stateMachineDefinition) {
     stateMachine.transactions = evaluateTransactions(stateMachine.states)
 
     return {
-        render: function (cvgElementId) {
-            showStateMachineGraph(cvgElementId, stateMachine);
+        render: function (containerSelector) {
+            renderStateMachineGraph(containerSelector, stateMachine);
         }
     }
 }

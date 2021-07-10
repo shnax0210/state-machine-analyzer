@@ -49213,7 +49213,7 @@ module.exports = zipObject;
 },{"./_assignValue":135,"./_baseZipObject":190}],350:[function(require,module,exports){
 const buildStates = require('./states-builder').buildStates;
 const buildTransactions = require('./transactions-builder').buildTransactions;
-const showStateMachineGraph = require('./state-machine-graph').showStateMachineGraph;
+const renderStateMachineGraph = require('./state-machine-graph').renderStateMachineGraph;
 const markStates = require('./states-marker').markStates;
 const _ = require('lodash');
 
@@ -49248,8 +49248,8 @@ function createStateMachine(stateMachineDefinition) {
     stateMachine.transactions = evaluateTransactions(stateMachine.states)
 
     return {
-        render: function (cvgElementId) {
-            showStateMachineGraph(cvgElementId, stateMachine);
+        render: function (containerSelector) {
+            renderStateMachineGraph(containerSelector, stateMachine);
         }
     }
 }
@@ -49260,24 +49260,37 @@ window.createStateMachine = createStateMachine;
 const d3 = require('d3');
 const dagreD3 = require('dagre-d3');
 
-function renderGraph(svgSelector, graph) {
-    // Create the renderer
+function createSvgGroup(svg) {
+    return svg.append("g");
+}
+
+function renderGraphToSvg(graph, svg) {
     const render = new dagreD3.render();
+    render(createSvgGroup(svg), graph);
+}
 
-    const svg = d3.select(svgSelector);
-    svg.selectAll("*").remove();
-    const svgGroup = svg.append("g");
+function findElementAndClean(elementSelector) {
+    const element = d3.select(elementSelector);
+    element.selectAll("*").remove();
+    return element;
+}
 
-    const zoom = d3.zoom().on("zoom", () => svg.attr("transform", d3.event.transform));
-    svg.call(zoom);
-    
-    // Run the renderer. This is what draws the final graph.
-    render(svgGroup, graph);
+function createSvg(container) {
+    const svg = container.append("svg");
+    svg.attr("width", "100%")
+    svg.attr("height", "100%")
+    svg.attr("preserveAspectRatio", "xMidYMid meet")
+    return svg;
+}
 
-    // Center the graph
-    const xCenterOffset = (svg.attr("width") - graph.graph().width) / 2;
-    svgGroup.attr("transform", "translate(" + xCenterOffset + ", 20)");
-    svg.attr("height", graph.graph().height + 40)
+function adjustGraphSize(graph, svg) {
+    svg.attr("viewBox", `0 -10 ${graph.graph().width + 20} ${graph.graph().height + 20}`)
+}
+
+function renderGraph(containerSelector, graph) {
+    const svg = createSvg(findElementAndClean(containerSelector));
+    renderGraphToSvg(graph, svg);
+    adjustGraphSize(graph, svg);
 }
 
 function determineArrayEndOffset(array, currentOffset) {
@@ -49352,11 +49365,11 @@ function createStateMachineGraph(stateMachine) {
     return graph;
 }
 
-function showStateMachineGraph(svgSelector, stateMachine) {
-    renderGraph(svgSelector, createStateMachineGraph(stateMachine));
+function renderStateMachineGraph(containerSelector, stateMachine) {
+    renderGraph(containerSelector, createStateMachineGraph(stateMachine));
 }
 
-exports.showStateMachineGraph = showStateMachineGraph;
+exports.renderStateMachineGraph = renderStateMachineGraph;
 
 },{"d3":32,"dagre-d3":33}],352:[function(require,module,exports){
 const selectionsTypes = {

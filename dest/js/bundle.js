@@ -49247,6 +49247,8 @@ function createStateMachine(stateMachineDefinition) {
     stateMachine.states = evaluateStates();
     stateMachine.transactions = evaluateTransactions(stateMachine.states)
 
+    console.log(JSON.stringify(stateMachine));
+    
     return {
         render: function (containerSelector) {
             renderStateMachineGraph(containerSelector, stateMachine);

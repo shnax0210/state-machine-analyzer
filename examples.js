@@ -159,85 +159,89 @@ return {
 }`
    },
    {
-      name: "Users buy products",
-      code: `function registerUser(state, id) {
-   if (Array.from(state.users).map(user => user.id).includes(id)) {
-       return;
-   }
-   
-   state.users.add({id: id, products: new Set()})
-}
-   
-function buyProduct(state, userId, productId) {
-   const users = Array.from(state.users);
-   if (!users.map(user => user.id).includes(userId)) {
-       return;
-   }
-   
-   users.find(user => user.id === userId).products.add(productId);
-}
-    
+      name: "4. Task workflow (object state with sets)",
+      code: `/*
+This is a fourth example for emulation of working on some task. 
+
+In addition to previous example, it has more complex state:
+"assignee" field here may have any value from ["Nobody", "SomebodyFromTeamA", "SomebodyFromTeamB"]
+and also there is new field "involvedTeams" that is not just value but set of values,
+it's indicated by selectionType="ANY_COMBINATION_OF",
+so "involvedTeams" can be equally to any combination of ["TeamA", "TeamB"] including empty set as well.
+
+Also there are more marks that indicates invalid states.
+*/
+
 return {
     statesDescription: {
-        users: {
-            selectionType: "ANY_COMBINATION_OF",
+        task: {
+            selectionType: "ANY_OF",
             objects: {
-                id: {
+                status: {
                     selectionType: "ANY_OF",
-                    unique: true,
-                    values: ["user1", "user2"]
+                    values: ["Open", "InProgress", "Done"]
                 },
-                products: {
+                assignee: {
+                    selectionType: "ANY_OF",
+                    values: ["Nobody", "SomebodyFromTeamA", "SomebodyFromTeamB"]
+                },
+                involvedTeams: {
                     selectionType: "ANY_COMBINATION_OF",
-                    values: ["product1", "product2"]
+                    values: ["TeamA", "TeamB"]
                 }
             }
         }
    },
-   markState: function(state) {
-       if (state.id === 10) {
-            return "Red"
-       }
-   
-       return "Green";
+   markState: (state) => {
+        if(state.task.status === "Open" && state.task.assignee === "Nobody" && state.task.involvedTeams.size == 0) {
+            return "Blue";
+        }
+        
+        if(state.task.status === "InProgress" && state.task.assignee === "Nobody") {
+            return "Red";
+        }
+        
+        if(state.task.status === "Done" && state.task.involvedTeams.size == 0) {
+            return "Magenta";
+        }
+        
+        if(state.task.assignee !== "Nobody" && state.task.involvedTeams.size == 0) {
+            return "Orange";
+        }
+        
+        return "Green";
    },
-   marksThatEventsWillBeAppliedTo: ["Green"],
+   marksThatEventsWillBeAppliedTo: ["Blue", "Green"],
    events: [
        {
-            name: "RegistrationUser1",
-            handle: function (state) {
-                registerUser(state, "user1");
+            name: "AssignTaskToTeamA",
+            handle: (state) => { 
+                state.task.assignee = "SomebodyFromTeamA";
+                state.task.involvedTeams.add("TeamA");
             }
        },
        {
-            name: "RegistrationUser2",
-            handle: function (state) {
-                registerUser(state, "user2");
+            name: "AssignTaskToTeamB",
+            handle: (state) => { 
+                state.task.assignee = "SomebodyFromTeamB" 
+                state.task.involvedTeams.add("TeamB");
             }
        },
        {
-            name: "User1BuyProduct1",
-            handle: function (state) {
-                buyProduct(state, "user1", "product1");
-            }
+            name: "UnAssignTask",
+            handle: (state) => { if(state.task.status !== "InProgress") state.task.assignee = "Nobody" }
        },
        {
-            name: "User1BuyProduct2",
-            handle: function (state) {
-                buyProduct(state, "user1", "product2");
-            }
+            name: "StartWorking",
+            handle: (state) => { if(state.task.status === "Open" && state.task.assignee !== "Nobody") state.task.status = "InProgress" }
        },
        {
-            name: "User2BuyProduct1",
-            handle: function (state) {
-                buyProduct(state, "user2", "product1");
-            }
+            name: "CompleteWorking",
+            handle: (state) => { if(state.task.status === "InProgress" && state.task.assignee !== "Nobody") state.task.status = "Done" }
        },
        {
-            name: "User2BuyProduct2",
-            handle: function (state) {
-                buyProduct(state, "user2", "product2");
-            }
+            name: "Reopen",
+            handle: (state) => { if(state.task.status === "Done" || state.task.status === "InProgress") state.task.status = "Open" }
        }
    ]
 }`

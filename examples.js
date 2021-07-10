@@ -93,14 +93,14 @@ This is third example for emulation of working on some task.
 
 It has same state structure as in previous example.
 But adds "markState" function that marks:
-- inial state where status=Open and assignee=Nobody with blue color;
+- initial state where status=Open and assignee=Nobody with blue color;
 - error state where status=InProgress and assignee=Nobody with red color.
 
 Also this example defines "marksThatEventsWillBeAppliedTo" field that 
 overrides default array of marks that all events apply to.
 As we can see marksThatEventsWillBeAppliedTo=["Blue", "Green"]
 so all events will be applied only to states with blue and green color 
-but to states with red colow. In such way you can easily check 
+but to states with red color. In such way you can easily check 
 that there is no transactions that change state to red one.
 
 This model will be improved in subsequent examples.

@@ -67,66 +67,6 @@
             fill: #808000;
         }
 
-        .marks-area__mark_red {
-            color: #ff0000;
-        }
-
-        .marks-area__mark_cyan {
-            color: #00FFFF;
-        }
-
-        .marks-area__mark_blue {
-            color: #0000FF;
-        }
-
-        .marks-area__mark_purple {
-            color: #800080;
-        }
-
-        .marks-area__mark_yellow {
-            color: #FFFF00;
-        }
-
-        .marks-area__mark_lime {
-            color: #00FF00;
-        }
-
-        .marks-area__mark_magenta {
-            color: #FF00FF;
-        }
-
-        .marks-area__mark_silver {
-            color: #C0C0C0;
-        }
-
-        .marks-area__mark_gray {
-            color: #808080;
-        }
-
-        .marks-area__mark_black {
-            color: #000000;
-        }
-
-        .marks-area__mark_orange {
-            color: #FFA500;
-        }
-
-        .marks-area__mark_brown {
-            color: #A52A2A;
-        }
-
-        .marks-area__mark_maroon {
-            color: #800000;
-        }
-
-        .marks-area__mark_green {
-            color: #008000;
-        }
-
-        .marks-area__mark_olive {
-            color: #808000;
-        }
-
         text {
             font-weight: 300;
             font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -216,16 +156,6 @@
             height: 30px;
             margin: 0 15px;
         }
-
-        .marks-area__list {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-        }
-
-        .marks-area__mark {
-            
-        }
     </style>
 </head>
 <body>
@@ -237,10 +167,6 @@
     <div class="examples-area">
         <h1>You can check next examples:</h1>
         <div class="examples-area__list"></div>
-    </div>
-    <div class="marks-area">
-        <h1>You can use next marks to color your state machine:</h1>
-        <div class="marks-area__list"></div>
     </div>
     <div class="edit-area">
         <h1>Please define your state machine here:</h1>
@@ -257,7 +183,6 @@
 <script src="dest/js/bundle.js"></script>
 <script src="lib/ace-builds-master/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
 <script src="examples.js" type="text/javascript" charset="utf-8"></script>
-<script src="marks.js" type="text/javascript" charset="utf-8"></script>
 <script>
     const SAVED_CODE_VARIABLE_NAME = 'savedCode';
     
@@ -272,18 +197,6 @@
 
         const examplesAreaElement = document.querySelector(".examples-area__list");
         EXAMPLES.forEach(example => examplesAreaElement.append(createButton(example)));
-    }
-    
-    function handleMarks() {
-        function createMark(mark) {
-            let div = document.createElement("div");
-            div.innerHTML = mark.label;
-            div.className = "marks-area__mark marks-area__mark_" + mark.color;
-            return div;
-        }
-        
-        const marksAreaElement = document.querySelector(".marks-area__list");
-        AVAILABLE_MARKS.forEach(mark => marksAreaElement.append(createMark(mark)));
     }
     
     function addCodeSaving(editor) {
@@ -327,34 +240,14 @@
             throw "Not possible graph element classes state";
         });
     }
-    
+
     function addHandlerForBuildGraphButton(editor) {
-        document.querySelector(".edit-area__button").addEventListener("click", () => {
-            const stateMachineDefinition = new Function(editor.getValue())();
-            stateMachineDefinition.marks = AVAILABLE_MARKS;
-
-            function decorateMarkState(markState) {
-                if(!markState) {
-                    return () => DEFAULT_MARK;
-                }
-
-                return state => markState(state) || DEFAULT_MARK;
-            }
-
-            stateMachineDefinition.markState = decorateMarkState(stateMachineDefinition.markState)
-
-            if(!stateMachineDefinition.marksThatEventsWillBeAppliedTo) {
-                stateMachineDefinition.marksThatEventsWillBeAppliedTo = AVAILABLE_MARKS.map(mark => mark.label);
-            }
-
-            const stateMachine = createStateMachine(stateMachineDefinition);
-            stateMachine.render(".graph-area__graph");
-        });
+        document.querySelector(".edit-area__button")
+            .addEventListener("click", () => updateStateMachine(new Function(editor.getValue())(), ".graph-area__graph"));
     }
 
     const editor = createEditor("editor");
     handleExamplesArea(editor);
-    handleMarks();
 
     addHandlerForResizeButton();
     addHandlerForBuildGraphButton(editor);

@@ -5,18 +5,15 @@ const EXAMPLES = [
 This is first example for emulation of working on some task. 
 
 Here we have very simple state that consists from one variable with name "status".
-The "status" can be equally to any value from list ["Open", "InProgress", "Done"]. 
+There is single initial state where status="Open".
 
-This model will be improved in subsequent examples.
+And there are a bunch of events that change "status" variable.
 */
 
 return {
-    statesDescription: {
-        status: {
-            selectionType: "ANY_OF",
-            values: ["Open", "InProgress", "Done"]
-        }
-   },
+    initialStates: [{
+        status: "Open"
+   }],
    events: [
        {
             name: "StartWorking",
@@ -40,28 +37,25 @@ This is second example for emulation of working on some task.
 
 Here state is not just one variable but object named "task".
 This object has two fields: "status" and "assignee".
-The "status" can be equally to any value from list ["Open", "InProgress", "Done"]. 
-The "assignee" can be equally to any value from list ["Nobody", "Somebody"]. 
 
-This model will be improved in subsequent examples.
+And there are a bunch of events that change "status" and "assignee" variable values.
+
+But let's look to the states on final graph, there is one that may look not right:
+task={
+  status=InProgress,
+  assignee=Nobody
+}
+
+Please check next examples to see what we can do with it.
 */
 
 return {
-    statesDescription: {
+    initialStates: [{
         task: {
-            selectionType: "ANY_OF",
-            objects: {
-                status: {
-                    selectionType: "ANY_OF",
-                    values: ["Open", "InProgress", "Done"]
-                },
-                assignee: {
-                    selectionType: "ANY_OF",
-                    values: ["Nobody", "Somebody"]
-                }
-            }
+            status: "Open",
+            assignee: "Nobody"
         }
-   },
+   }],
    events: [
        {
             name: "AssignTask",
@@ -73,7 +67,7 @@ return {
        },
        {
             name: "StartWorking",
-            handle: (state) => { if(state.task.status === "Open" && state.task.assignee !== "Nobody") state.task.status = "InProgress" }
+            handle: (state) => { if(state.task.status === "Open") state.task.status = "InProgress" }
        },
        {
             name: "CompleteWorking",
@@ -87,53 +81,40 @@ return {
 }`
    },
    {
-      name: "3. Task workflow (object state with marks)",
+      name: "3. Task workflow (invalid state highlighting)",
       code: `/*
 This is third example for emulation of working on some task. 
 
-It has same state structure as in previous example.
-But adds "markState" function that marks:
-- initial state where status=Open and assignee=Nobody with blue color;
-- error state where status=InProgress and assignee=Nobody with red color.
+In previous example we found that state:
+task={
+  status=InProgress,
+  assignee=Nobody
+}
 
-Also this example defines "marksThatEventsWillBeAppliedTo" field that 
-overrides default array of marks that all events apply to.
-As we can see marksThatEventsWillBeAppliedTo=["Blue", "Green"]
-so all events will be applied only to states with blue and green color 
-but to states with red color. In such way you can easily check 
-that there is no transactions that change state to red one.
+is not right. So here we define "isStateValid" function to check it.
 
-This model will be improved in subsequent examples.
+As you may see from final graph there are only few states and our invalid state is colored red. 
+This is because when state machine finds invalid state it stops and highlight the state with red.
+
+However if you want not to stop state machine when it finds invalid state 
+you can uncomment "continueOnInvalidState: true," line to achive it.
 */
 
 return {
-    statesDescription: {
+    initialStates: [{
         task: {
-            selectionType: "ANY_OF",
-            objects: {
-                status: {
-                    selectionType: "ANY_OF",
-                    values: ["Open", "InProgress", "Done"]
-                },
-                assignee: {
-                    selectionType: "ANY_OF",
-                    values: ["Nobody", "Somebody"]
-                }
-            }
+            status: "Open",
+            assignee: "Nobody"
         }
+   }],
+   isStateValid: (state) => {
+       if(state.task.status === "InProgress" && state.task.assignee === "Nobody") {
+           return false;
+       }
+       
+       return true;
    },
-   markState: (state) => {
-        if(state.task.status === "Open" && state.task.assignee === "Nobody") {
-            return "Blue";
-        }
-        
-        if(state.task.status === "InProgress" && state.task.assignee === "Nobody") {
-            return "Red";
-        }
-        
-        return "Green";
-   },
-   marksThatEventsWillBeAppliedTo: ["Blue", "Green"],
+   /*continueOnInvalidState: true,*/
    events: [
        {
             name: "AssignTask",
@@ -145,11 +126,11 @@ return {
        },
        {
             name: "StartWorking",
-            handle: (state) => { if(state.task.status === "Open" && state.task.assignee !== "Nobody") state.task.status = "InProgress" }
+            handle: (state) => { if(state.task.status === "Open") state.task.status = "InProgress" }
        },
        {
             name: "CompleteWorking",
-            handle: (state) => { if(state.task.status === "InProgress" && state.task.assignee !== "Nobody") state.task.status = "Done" }
+            handle: (state) => { if(state.task.status === "InProgress") state.task.status = "Done" }
        },
        {
             name: "Reopen",
@@ -159,73 +140,34 @@ return {
 }`
    },
    {
-      name: "4. Task workflow (object state with sets)",
+      name: "4. Task workflow (invalid state fix)",
       code: `/*
-This is a fourth example for emulation of working on some task. 
+This is fourth example for emulation of working on some task. 
 
-In addition to previous example, it has more complex state:
-"assignee" field here may have any value from ["Nobody", "SomebodyFromTeamA", "SomebodyFromTeamB"]
-and also there is new field "involvedTeams" that is not just value but set of values,
-it's indicated by selectionType="ANY_COMBINATION_OF",
-so "involvedTeams" can be equally to any combination of ["TeamA", "TeamB"] including empty set as well.
+In previous example we highlighted invalid state.
 
-Also there are more marks that indicates invalid states.
+Here we just with "StartWorking" event handler in order to make the invalid state not possible.
 */
 
 return {
-    statesDescription: {
+    initialStates: [{
         task: {
-            selectionType: "ANY_OF",
-            objects: {
-                status: {
-                    selectionType: "ANY_OF",
-                    values: ["Open", "InProgress", "Done"]
-                },
-                assignee: {
-                    selectionType: "ANY_OF",
-                    values: ["Nobody", "SomebodyFromTeamA", "SomebodyFromTeamB"]
-                },
-                involvedTeams: {
-                    selectionType: "ANY_COMBINATION_OF",
-                    values: ["TeamA", "TeamB"]
-                }
-            }
+            status: "Open",
+            assignee: "Nobody"
         }
+   }],
+   isStateValid: (state) => {
+       if(state.task.status === "InProgress" && state.task.assignee === "Nobody") {
+           return false;
+       }
+       
+       return true;
    },
-   markState: (state) => {
-        if(state.task.status === "Open" && state.task.assignee === "Nobody" && state.task.involvedTeams.size == 0) {
-            return "Blue";
-        }
-        
-        if(state.task.status === "InProgress" && state.task.assignee === "Nobody") {
-            return "Red";
-        }
-        
-        if(state.task.status === "Done" && state.task.involvedTeams.size == 0) {
-            return "Magenta";
-        }
-        
-        if(state.task.assignee !== "Nobody" && state.task.involvedTeams.size == 0) {
-            return "Orange";
-        }
-        
-        return "Green";
-   },
-   marksThatEventsWillBeAppliedTo: ["Blue", "Green"],
+   /*continueOnInvalidState: true,*/
    events: [
        {
-            name: "AssignTaskToTeamA",
-            handle: (state) => { 
-                state.task.assignee = "SomebodyFromTeamA";
-                state.task.involvedTeams.add("TeamA");
-            }
-       },
-       {
-            name: "AssignTaskToTeamB",
-            handle: (state) => { 
-                state.task.assignee = "SomebodyFromTeamB" 
-                state.task.involvedTeams.add("TeamB");
-            }
+            name: "AssignTask",
+            handle: (state) => { state.task.assignee = "Somebody" }
        },
        {
             name: "UnAssignTask",
@@ -233,11 +175,11 @@ return {
        },
        {
             name: "StartWorking",
-            handle: (state) => { if(state.task.status === "Open" && state.task.assignee !== "Nobody") state.task.status = "InProgress" }
+            handle: (state) => { if(state.task.status === "Open" && state.task.assignee !== "Nobody" ) state.task.status = "InProgress" }
        },
        {
             name: "CompleteWorking",
-            handle: (state) => { if(state.task.status === "InProgress" && state.task.assignee !== "Nobody") state.task.status = "Done" }
+            handle: (state) => { if(state.task.status === "InProgress") state.task.status = "Done" }
        },
        {
             name: "Reopen",

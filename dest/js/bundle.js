@@ -49211,52 +49211,152 @@ function zipObject(props, values) {
 module.exports = zipObject;
 
 },{"./_assignValue":135,"./_baseZipObject":190}],350:[function(require,module,exports){
-const buildStates = require('./states-builder').buildStates;
-const buildTransactions = require('./transactions-builder').buildTransactions;
+const buildStateMachine = require('./state-machine-builder').build;
 const renderStateMachineGraph = require('./state-machine-graph').renderStateMachineGraph;
-const markStates = require('./states-marker').markStates;
+
+function updateStateMachine(stateMachineDefinition, containerSelector) {
+    renderStateMachineGraph(containerSelector, buildStateMachine(stateMachineDefinition));
+}
+
+window.updateStateMachine = updateStateMachine;
+
+},{"./state-machine-builder":351,"./state-machine-graph":352}],351:[function(require,module,exports){
 const _ = require('lodash');
 
-function createStateMachine(stateMachineDefinition) {
-    function evaluateStates() {
-        if (!stateMachineDefinition.statesDescription) {
-            console.warn("There is not statesDescription: " + JSON.stringify(stateMachineDefinition));
-            return {};
-        }
+const INITIAL_STATE_MARK = {
+    label: "Initial",
+    color: "blue"
+}
 
-        let states = buildStates(stateMachineDefinition.statesDescription);
+const VALID_STATE_MARK = {
+    label: "Valid",
+    color: "green"
+}
 
-        if (!_.isFunction(stateMachineDefinition.markState)) {
-            console.warn("Mark state function is missing or is not a function: " + JSON.stringify(stateMachineDefinition));
-            return states;
-        }
+const INVALID_STATE_MARK = {
+    label: "InValid",
+    color: "red"
+}
 
-        return markStates(states, stateMachineDefinition.marks, stateMachineDefinition.markState);
-    }
+const NOT_VALID_STEP_FAIL = "NOT_VALID_STEP_FAIL";
 
-    function evaluateTransactions(states) {
-        if (!stateMachineDefinition.events) {
-            console.warn("There is no events: " + JSON.stringify(stateMachineDefinition));
-            return [];
-        }
+function findState(states, stateObject) {
+    const foundState = states.find(state => _.isEqual(state.stateObject, stateObject));
+    return foundState ? foundState : null;
+}
 
-        return buildTransactions(stateMachineDefinition.events, states, stateMachineDefinition.marksThatEventsWillBeAppliedTo)
-    }
-
-    const stateMachine = {};
-    stateMachine.states = evaluateStates();
-    stateMachine.transactions = evaluateTransactions(stateMachine.states)
-
+function createState(stateId, stateObject, stateMark) {
     return {
-        render: function (containerSelector) {
-            renderStateMachineGraph(containerSelector, stateMachine);
-        }
+        id: stateId,
+        stateObject: stateObject,
+        mark: stateMark
     }
 }
 
-window.createStateMachine = createStateMachine;
+function prepareInitialStates(initialStateObjects) {
+    return initialStateObjects.map((stateObject, index) => createState(index, stateObject, INITIAL_STATE_MARK));
+}
 
-},{"./state-machine-graph":351,"./states-builder":352,"./states-marker":353,"./transactions-builder":354,"lodash":322}],351:[function(require,module,exports){
+function defineMark(stateObject, isStateValid) {
+    return isStateValid(stateObject) ? VALID_STATE_MARK : INVALID_STATE_MARK;
+}
+
+function createStateAndRegister(existingStates, stateObject, isStateValid) {
+    const newState = createState(existingStates.length, stateObject, defineMark(stateObject, isStateValid));
+    existingStates.push(newState);
+    return newState;
+}
+
+function findOrCreateState(existingStates, stateObject, isStateValid) {
+    const existingState = findState(existingStates, stateObject);
+    if (existingState) {
+        return [existingState, false]
+    }
+
+    return [createStateAndRegister(existingStates, stateObject, isStateValid), true];
+}
+
+function createTransaction(event, fromState, toState) {
+    return {
+        name: event.name,
+        from: fromState.id,
+        to: toState.id
+    }
+}
+
+function isStopNeeded(toState, stateMachineDefinition) {
+    return !stateMachineDefinition.continueOnInvalidState && _.isEqual(toState.mark, INVALID_STATE_MARK);
+}
+
+function checkAndAdjustStateMachineDefinition(stateMachineDefinition) {
+    if (!stateMachineDefinition) {
+        throw `State machine definition was not provided: ${stateMachineDefinition}`;
+    }
+
+    if (!stateMachineDefinition.initialStates) {
+        throw `No initial states were provided: ${stateMachineDefinition.initialStates}`;
+    }
+
+    if (!stateMachineDefinition.events) {
+        throw `No events were provided: ${stateMachineDefinition.events}`;
+    }
+
+    if (stateMachineDefinition.isStateValid && !_.isFunction(stateMachineDefinition.isStateValid)) {
+        throw `isStateValid should be a function but was provided: ${stateMachineDefinition.isStateValid}`;
+    }
+
+    if (!stateMachineDefinition.isStateValid) {
+        console.info("isStateValid function was not provided, default one will be used")
+        stateMachineDefinition.isStateValid = () => true;
+    }
+}
+
+function build(stateMachineDefinition) {
+    checkAndAdjustStateMachineDefinition(stateMachineDefinition);
+    
+    const achievedStates = prepareInitialStates(stateMachineDefinition.initialStates)
+    let inProcessStates = _.cloneDeep(achievedStates)
+
+    const transactions = []
+
+    try {
+        while (inProcessStates.length) {
+            console.log(`inProcessStates.size=${inProcessStates.size}`)
+            const statesForNextProcessing = [];
+            inProcessStates.forEach(fromState => {
+                stateMachineDefinition.events.forEach(event => {
+                    const toStateObject = _.cloneDeep(fromState.stateObject)
+                    event.handle(toStateObject);
+
+                    if (!_.isEqual(fromState.stateObject, toStateObject)) {
+                        let [toState, isNewState] = findOrCreateState(achievedStates, toStateObject, stateMachineDefinition.isStateValid);
+
+                        transactions.push(createTransaction(event, fromState, toState))
+                        if (isNewState) statesForNextProcessing.push(toState);
+
+                        if (isStopNeeded(toState, stateMachineDefinition)) {
+                            throw NOT_VALID_STEP_FAIL
+                        }
+                    }
+                })
+            })
+            inProcessStates = statesForNextProcessing;
+        }
+    } catch (err) {
+        if (err !== NOT_VALID_STEP_FAIL) {
+            throw err;
+        }
+    }
+
+    return {
+        states: achievedStates,
+        transactions: transactions
+    };
+}
+
+exports.build = build;
+
+},{"lodash":322}],352:[function(require,module,exports){
 const d3 = require('d3');
 const dagreD3 = require('dagre-d3');
 
@@ -49371,290 +49471,4 @@ function renderStateMachineGraph(containerSelector, stateMachine) {
 
 exports.renderStateMachineGraph = renderStateMachineGraph;
 
-},{"d3":32,"dagre-d3":33}],352:[function(require,module,exports){
-const selectionsTypes = {
-    ANY_OF: "ANY_OF",
-    ANY_COMBINATION_OF: "ANY_COMBINATION_OF"
-}
-
-function buildAttributePath(currentPath, attributeName) {
-    if (currentPath) {
-        return currentPath + "." + attributeName;
-    }
-    return attributeName;
-}
-
-function buildAttributePaths(object, currentPath = "", result = []) {
-    Object.keys(object).forEach(attributeName => {
-        let attributePath = buildAttributePath(currentPath, attributeName);
-
-        result.push(attributePath);
-        if (object[attributeName].objects) {
-            buildAttributePaths(object[attributeName].objects, attributePath, result);
-        }
-    })
-
-    return result;
-}
-
-function maxAttributePathsDeep(attributePaths) {
-    return Math.max.apply(null, attributePaths.map(path => path.split(".").length));
-}
-
-function findAttributeWithDeep(attributePaths, attributeDeep) {
-    return attributePaths.filter(path => path.split(".").length === attributeDeep);
-}
-
-function buildPrecessingOrder(attributePaths) {
-    let attributeDeep = maxAttributePathsDeep(attributePaths)
-    const result = [];
-
-    while (attributeDeep > 0) {
-        let attributesWithParticularDeep = findAttributeWithDeep(attributePaths, attributeDeep)
-        if (attributesWithParticularDeep) {
-            result.push(attributesWithParticularDeep)
-        }
-        --attributeDeep;
-    }
-
-    return result;
-}
-
-function findAttributeDescription(attributePath, statesDescription) {
-    let result = statesDescription;
-
-    attributePath.split(".")
-        .forEach(pathElement => {
-            if (!result.objects) {
-                result = result[pathElement]
-            } else {
-                result = result.objects[pathElement]
-            }
-        });
-
-    return result;
-}
-
-function convertAllArraysToSets(object) {
-    if (Array.isArray(object)) {
-        return new Set(object.map(element => convertAllArraysToSets(element)))
-    }
-
-    if (object && typeof object === "object") {
-        const result = {};
-
-        Object.entries(object).forEach(keyToValue => {
-            result[keyToValue[0]] = convertAllArraysToSets(keyToValue[1]);
-        })
-
-        return result;
-    }
-
-    return object;
-}
-
-function findAllCombinations(list) {
-    let set = [[]],
-        listSize = list.length,
-        combinationsCount = (1 << listSize),
-        combination;
-
-    for (let i = 1; i < combinationsCount; i++) {
-        combination = [];
-        for (let j = 0; j < listSize; j++) {
-            if ((i & (1 << j))) {
-                combination.push(list[j]);
-            }
-        }
-        set.push(combination);
-    }
-    return set;
-}
-
-function cartesianProduct(arr) {
-    return arr.reduce(function (a, b) {
-        return a.map(function (x) {
-            return b.map(function (y) {
-                return x.concat([y]);
-            })
-        }).reduce(function (a, b) {
-            return a.concat(b)
-        }, [])
-    }, [[]])
-}
-
-function buildAttributeValueObject(attributesStore, attributePath, subAttributeName) {
-    return attributesStore[buildAttributePath(attributePath, subAttributeName)]
-        .map(attributeValue => {
-            return {
-                name: subAttributeName,
-                value: attributeValue
-            }
-        })
-}
-
-function buildAttributesValueObjects(attributeDescription, attributesStore, attributePath) {
-    return Object.keys(attributeDescription.objects)
-        .map(subAttributeName => buildAttributeValueObject(attributesStore, attributePath, subAttributeName));
-}
-
-function createObject(attributesCombination) {
-    const result = {};
-    attributesCombination.forEach(attribute => result[attribute.name] = attribute.value);
-    return result;
-}
-
-function findUniqAttributes(attributeDescription) {
-    return Object.entries(attributeDescription.objects)
-        .filter(entry => entry[1].unique)
-        .map(entry => entry[0]);
-}
-
-function hasDuplicatedUniqAttributes(combination, uniqAttribute) {
-    return (new Set(combination.map(element => element[uniqAttribute]))).size !== combination.length;
-}
-
-function isValidCombination(combination, attributeDescription) {
-    return !findUniqAttributes(attributeDescription)
-        .find(uniqAttribute => hasDuplicatedUniqAttributes(combination, uniqAttribute))
-}
-
-function processAttribute(attributePath, attributesStore, statesDescription) {
-    const attributeDescription = findAttributeDescription(attributePath, statesDescription);
-
-    if (attributeDescription.values) {
-        if (attributeDescription.selectionType === selectionsTypes.ANY_OF) {
-            attributesStore[attributePath] = attributeDescription.values;
-            return;
-        }
-
-        if (attributeDescription.selectionType === selectionsTypes.ANY_COMBINATION_OF) {
-            attributesStore[attributePath] = findAllCombinations(attributeDescription.values);
-            return;
-        }
-
-        throw "Not knows selectionType=" + attributeDescription.selectionType;
-    }
-
-    if (attributeDescription.objects) {
-        const values = cartesianProduct(buildAttributesValueObjects(attributeDescription, attributesStore, attributePath))
-            .map(attributesCombination => createObject(attributesCombination));
-
-        if (attributeDescription.selectionType === selectionsTypes.ANY_OF) {
-            attributesStore[attributePath] = values;
-            return;
-        }
-
-        if (attributeDescription.selectionType === selectionsTypes.ANY_COMBINATION_OF) {
-            attributesStore[attributePath] = findAllCombinations(values)
-                .filter(combination => isValidCombination(combination, attributeDescription));
-            return;
-        }
-
-        throw "Not known selectionType=" + attributeDescription.selectionType;
-    }
-
-    throw "Not known attributeDescription=" + attributeDescription;
-}
-
-function buildStates(statesDescription) {
-    statesDescription = {
-        states: {
-            selectionType: selectionsTypes.ANY_OF,
-            objects: statesDescription
-        }
-    }
-
-    const attributesSetToProcess = buildPrecessingOrder(buildAttributePaths(statesDescription));
-    const attributesStore = {};
-
-    attributesSetToProcess
-        .forEach(attributes => attributes
-            .forEach(attributePath => processAttribute(attributePath, attributesStore, statesDescription)))
-
-    return attributesStore.states.map(state => {return {
-        stateObject: convertAllArraysToSets(state)
-    }});
-}
-
-exports.buildStates = buildStates;
-exports.selectionsTypes = selectionsTypes;
-
-},{}],353:[function(require,module,exports){
-const _ = require('lodash');
-
-function selectStateMark(state, allMarks, selectStateMarkLabel) {
-    const selectedMarkLabel = selectStateMarkLabel(state.stateObject);
-
-    if (!selectedMarkLabel) {
-        console.warn("selectStateMarkLabel function does not return mark for state=" + JSON.stringify(state.stateObject));
-        return null;
-    }
-
-    const selectedMark = allMarks.find(mark => mark.label === selectedMarkLabel);
-
-    if (!selectedMark) {
-        console.warn(`There is no mark with label=${selectedMarkLabel} in all available marks=${JSON.stringify(allMarks)}`);
-        return null;
-    }
-
-    return selectedMark;
-}
-
-function markStates(states, allMarks, selectStateMarkLabel) {
-    if (!selectStateMarkLabel) {
-        console.warn("selectMark function is not defined, marks will be not assigned to states")
-        return states;
-    }
-
-    if (!allMarks) {
-        console.warn("There are no defined marks, so they will be not assigned to states")
-        return states;
-    }
-
-    return states.map(state => {
-        const stateCopy = _.cloneDeep(state)
-        stateCopy.mark = selectStateMark(state, allMarks, selectStateMarkLabel);
-        return stateCopy;
-    })
-}
-
-exports.markStates = markStates;
-
-},{"lodash":322}],354:[function(require,module,exports){
-const _ = require('lodash');
-
-function findStateId(states, stateObject) {
-    const foundState = states.find(state => _.isEqual(state.stateObject, stateObject));
-    return foundState ? foundState.id : null;
-}
-
-function addIds(states) {
-    return states.forEach((state, index) => state.id = index);
-}
-
-function buildTransactions(events, states, markLabels) {
-    addIds(states);
-    const transactions = []
-
-    states.filter(state => markLabels.includes(state.mark && state.mark.label)).forEach(state => {
-        events.forEach(event => {
-            const newStateObject = _.cloneDeep(state.stateObject)
-            event.handle(newStateObject);
-
-            if (!_.isEqual(state.stateObject, newStateObject)) {
-                transactions.push({
-                    name: event.name,
-                    from: state.id,
-                    to: findStateId(states, newStateObject)
-                })
-            }
-        })
-    })
-
-    return transactions;
-}
-
-exports.buildTransactions = buildTransactions;
-
-},{"lodash":322}]},{},[350]);
+},{"d3":32,"dagre-d3":33}]},{},[350]);

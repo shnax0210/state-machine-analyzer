@@ -5,7 +5,12 @@ function findStateId(states, stateObject) {
     return foundState ? foundState.id : null;
 }
 
+function addIds(states) {
+    return states.forEach((state, index) => state.id = index);
+}
+
 function buildTransactions(events, states, markLabels) {
+    addIds(states);
     const transactions = []
 
     states.filter(state => markLabels.includes(state.mark && state.mark.label)).forEach(state => {

@@ -49247,8 +49247,6 @@ function createStateMachine(stateMachineDefinition) {
     stateMachine.states = evaluateStates();
     stateMachine.transactions = evaluateTransactions(stateMachine.states)
 
-    console.log(JSON.stringify(stateMachine));
-    
     return {
         render: function (containerSelector) {
             renderStateMachineGraph(containerSelector, stateMachine);
@@ -49559,15 +49557,6 @@ function processAttribute(attributePath, attributesStore, statesDescription) {
     throw "Not known attributeDescription=" + attributeDescription;
 }
 
-function addIds(states) {
-    return states.map((state, index) => {
-        return {
-            id: index,
-            stateObject: state
-        };
-    });
-}
-
 function buildStates(statesDescription) {
     statesDescription = {
         states: {
@@ -49583,7 +49572,9 @@ function buildStates(statesDescription) {
         .forEach(attributes => attributes
             .forEach(attributePath => processAttribute(attributePath, attributesStore, statesDescription)))
 
-    return addIds(attributesStore.states.map(convertAllArraysToSets));
+    return attributesStore.states.map(state => {return {
+        stateObject: convertAllArraysToSets(state)
+    }});
 }
 
 exports.buildStates = buildStates;
@@ -49638,7 +49629,12 @@ function findStateId(states, stateObject) {
     return foundState ? foundState.id : null;
 }
 
+function addIds(states) {
+    return states.forEach((state, index) => state.id = index);
+}
+
 function buildTransactions(events, states, markLabels) {
+    addIds(states);
     const transactions = []
 
     states.filter(state => markLabels.includes(state.mark && state.mark.label)).forEach(state => {
@@ -49660,4 +49656,5 @@ function buildTransactions(events, states, markLabels) {
 }
 
 exports.buildTransactions = buildTransactions;
+
 },{"lodash":322}]},{},[350]);

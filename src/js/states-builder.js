@@ -183,15 +183,6 @@ function processAttribute(attributePath, attributesStore, statesDescription) {
     throw "Not known attributeDescription=" + attributeDescription;
 }
 
-function addIds(states) {
-    return states.map((state, index) => {
-        return {
-            id: index,
-            stateObject: state
-        };
-    });
-}
-
 function buildStates(statesDescription) {
     statesDescription = {
         states: {
@@ -207,7 +198,9 @@ function buildStates(statesDescription) {
         .forEach(attributes => attributes
             .forEach(attributePath => processAttribute(attributePath, attributesStore, statesDescription)))
 
-    return addIds(attributesStore.states.map(convertAllArraysToSets));
+    return attributesStore.states.map(state => {return {
+        stateObject: convertAllArraysToSets(state)
+    }});
 }
 
 exports.buildStates = buildStates;

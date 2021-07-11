@@ -61,40 +61,50 @@ function createTransaction(event, fromState, toState) {
     }
 }
 
-function isStopNeeded(toState, stateMachineDefinition) {
-    return !stateMachineDefinition.continueOnInvalidState && _.isEqual(toState.mark, INVALID_STATE_MARK);
-}
-
 function checkAndAdjustStateMachineDefinition(stateMachineDefinition) {
     if (!stateMachineDefinition) {
         throw `State machine definition was not provided: ${stateMachineDefinition}`;
     }
 
     if (!stateMachineDefinition.initialStates) {
-        throw `No initial states were provided: ${stateMachineDefinition.initialStates}`;
+        throw `"initialStates" property should be array but is not defined: ${stateMachineDefinition.initialStates}`;
+    }
+
+    if (!_.isArray(stateMachineDefinition.initialStates)) {
+        throw `"initialStates" property should be array but it is: ${stateMachineDefinition.initialStates}`;
     }
 
     if (!stateMachineDefinition.events) {
-        throw `No events were provided: ${stateMachineDefinition.events}`;
+        throw `"events" property should be array but is not defined: ${stateMachineDefinition.events}`;
+    }
+
+    if (!_.isArray(stateMachineDefinition.events)) {
+        throw `"events" property should be array but it is: ${stateMachineDefinition.events}`;
     }
 
     if (stateMachineDefinition.isStateValid && !_.isFunction(stateMachineDefinition.isStateValid)) {
-        throw `isStateValid should be a function but was provided: ${stateMachineDefinition.isStateValid}`;
+        throw `"isStateValid" property should be a function: ${stateMachineDefinition.isStateValid}`;
     }
 
     if (!stateMachineDefinition.isStateValid) {
-        console.info("isStateValid function was not provided, default one will be used")
+        console.info(`"isStateValid" function was not provided, default one will be used`)
         stateMachineDefinition.isStateValid = () => true;
+    }
+}
+
+function checkIfStopNeeded(toState, stateMachineDefinition) {
+    if (!stateMachineDefinition.continueOnInvalidState && _.isEqual(toState.mark, INVALID_STATE_MARK)) {
+        throw NOT_VALID_STEP_FAIL
     }
 }
 
 function build(stateMachineDefinition) {
     checkAndAdjustStateMachineDefinition(stateMachineDefinition);
     
-    const achievedStates = prepareInitialStates(stateMachineDefinition.initialStates)
-    let inProcessStates = _.cloneDeep(achievedStates)
+    const achievedStates = prepareInitialStates(stateMachineDefinition.initialStates);
+    let inProcessStates = _.cloneDeep(achievedStates);
 
-    const transactions = []
+    const transactions = [];
 
     try {
         while (inProcessStates.length) {
@@ -107,12 +117,10 @@ function build(stateMachineDefinition) {
                     if (!_.isEqual(fromState.stateObject, toStateObject)) {
                         let [toState, isNewState] = findOrCreateState(achievedStates, toStateObject, stateMachineDefinition.isStateValid);
 
-                        transactions.push(createTransaction(event, fromState, toState))
+                        transactions.push(createTransaction(event, fromState, toState));
                         if (isNewState) statesForNextProcessing.push(toState);
-
-                        if (isStopNeeded(toState, stateMachineDefinition)) {
-                            throw NOT_VALID_STEP_FAIL
-                        }
+                        
+                        checkIfStopNeeded(toState, stateMachineDefinition);
                     }
                 })
             })

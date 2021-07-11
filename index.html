@@ -133,6 +133,26 @@
             margin: 5px 5px;
         }
         
+        .edit-area__error-alert {
+            padding: 15px;
+            background-color: #f44336;
+            margin-bottom: 15px;
+            color: white;
+            display: none;
+            border-radius: 12px;
+        }
+        
+        .edit-area__error-alert-close-button {
+            margin-left: 15px;
+            color: white;
+            font-weight: bold;
+            float: right;
+            font-size: 22px;
+            line-height: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        
         .edit-area__button {
             background-color: #008CBA;
             margin: 15px 0;
@@ -172,6 +192,10 @@
         <h1>Please define your state machine here:</h1>
         <div id="editor" class="edit-area__editor"></div>
         <button class="edit-area__button">Build graph</button>
+        <div class="edit-area__error-alert">
+            <span class="edit-area__error-alert-close-button" onclick="this.parentElement.style.display='none';">&times;</span>
+            <strong>Error!</strong> Please check dev tool console for details.
+        </div>
     </div>
     
     <div class="graph-area">
@@ -243,7 +267,15 @@
 
     function addHandlerForBuildGraphButton(editor) {
         document.querySelector(".edit-area__button")
-            .addEventListener("click", () => updateStateMachine(new Function(editor.getValue())(), ".graph-area__graph"));
+            .addEventListener("click", () => {
+                try {
+                    document.querySelector(".edit-area__error-alert").style.display = "none";
+                    updateStateMachine(new Function(editor.getValue())(), ".graph-area__graph");
+                } catch (err) {
+                    document.querySelector(".edit-area__error-alert").style.display = "block";
+                    throw err;
+                }
+            });
     }
 
     const editor = createEditor("editor");

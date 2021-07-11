@@ -49286,27 +49286,27 @@ function createTransaction(event, fromState, toState) {
 
 function checkAndAdjustStateMachineDefinition(stateMachineDefinition) {
     if (!stateMachineDefinition) {
-        throw `State machine definition was not provided: ${stateMachineDefinition}`;
+        throw new Error(`State machine definition was not provided: ${stateMachineDefinition}`);
     }
 
     if (!stateMachineDefinition.initialStates) {
-        throw `"initialStates" property should be array but is not defined: ${stateMachineDefinition.initialStates}`;
+        throw new Error(`"initialStates" property should be array but is not defined: ${stateMachineDefinition.initialStates}`);
     }
 
     if (!_.isArray(stateMachineDefinition.initialStates)) {
-        throw `"initialStates" property should be array but it is: ${stateMachineDefinition.initialStates}`;
+        throw new Error(`"initialStates" property should be array but it is: ${stateMachineDefinition.initialStates}`);
     }
 
     if (!stateMachineDefinition.events) {
-        throw `"events" property should be array but is not defined: ${stateMachineDefinition.events}`;
+        throw new Error(`"events" property should be array but is not defined: ${stateMachineDefinition.events}`);
     }
 
     if (!_.isArray(stateMachineDefinition.events)) {
-        throw `"events" property should be array but it is: ${stateMachineDefinition.events}`;
+        throw new Error(`"events" property should be array but it is: ${stateMachineDefinition.events}`);
     }
 
     if (stateMachineDefinition.isStateValid && !_.isFunction(stateMachineDefinition.isStateValid)) {
-        throw `"isStateValid" property should be a function: ${stateMachineDefinition.isStateValid}`;
+        throw new Error(`"isStateValid" property should be a function: ${stateMachineDefinition.isStateValid}`);
     }
 
     if (!stateMachineDefinition.isStateValid) {

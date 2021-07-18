@@ -7,13 +7,20 @@
     "@dagrejs/graphlib": "2.1.4",
     "d3": "5.16",
     "dagre-d3": "0.6.4",
-    "lodash": "4.17.20"
+    "lodash": "4.17.21",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
+    "styled-components": "5.3.0"
   },
   "devDependencies": {
+    "@babel/core": "7.14.6",
+    "@babel/preset-env": "7.14.7",
+    "@babel/preset-react": "7.14.5",
+    "babelify": "10.0.0",
     "browserify": "17.0.0"
   },
   "scripts": {
-    "build": "browserify src/js/main.js -o dest/js/bundle.js",
+    "build": "browserify src/js/main.jsx -o dest/js/bundle.js -t [ babelify --presets [ @babel/preset-env @babel/preset-react ] ]",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "shnax0210@gmail.com",

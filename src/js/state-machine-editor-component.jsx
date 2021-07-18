@@ -70,8 +70,17 @@ class Editor extends React.Component {
 
     componentDidMount() {
         this.aceEditor = createAceEditor(EDITOR_ID, this.props.isCodeSavingEnabled);
+        if (this.props.prepopulatedCode) {
+            this.aceEditor.setValue(this.props.prepopulatedCode);
+        }
     }
 
+    componentDidUpdate() {
+        if (this.props.prepopulatedCode) {
+            this.aceEditor.setValue(this.props.prepopulatedCode);
+        }
+    }
+    
     runEditorCode() {
         try {
             this.setState({hasError: false});

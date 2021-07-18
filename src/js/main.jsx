@@ -64,7 +64,14 @@ class Tabs extends React.Component {
 
 const exampleTabs = [{
         name: "Code area",
-        component: () => <Editor isCodeSavingEnabled={true}/>
+        component: () => {
+            return (
+                <div>
+                    <h1>Please define your state machine here:</h1>
+                    <Editor isCodeSavingEnabled={true}/>}
+                </div>
+            );
+        }
     },
     {
         name: "Examples",

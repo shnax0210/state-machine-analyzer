@@ -42,10 +42,11 @@ class Examples extends React.Component {
 
         return (
             <div>
-                <h1>Please check next examples</h1>
+                <h1>Available examples:</h1>
                 <AvailableExamplesArea>
                     {availableExamples}
                 </AvailableExamplesArea>
+                <h1>Selected example code:</h1>
                 <Editor isCodeSavingEnabled={false} prepopulatedCode={this.state.shownExample.code}/>
             </div>
         );

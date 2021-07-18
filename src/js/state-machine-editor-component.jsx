@@ -94,7 +94,6 @@ class Editor extends React.Component {
     render() {
         return (
             <div>
-                <h1>Please define your state machine here:</h1>
                 <EditorDiv id={EDITOR_ID}/>
                 <RunButton onClick={this.runEditorCode}>Build graph</RunButton>
                 {this.state.hasError ? <ErrorAlert/> : ""}

@@ -68,7 +68,7 @@ const exampleTabs = [{
             return (
                 <div>
                     <h1>Please define your state machine here:</h1>
-                    <Editor isCodeSavingEnabled={true}/>}
+                    <Editor isCodeSavingEnabled={true}/>
                 </div>
             );
         }

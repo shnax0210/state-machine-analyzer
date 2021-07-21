@@ -56,8 +56,8 @@ function findOrCreateState(existingStates, stateObject, isStateValid) {
 function createTransaction(event, fromState, toState) {
     return {
         name: event.name,
-        from: fromState.id,
-        to: toState.id
+        from: fromState,
+        to: toState
     }
 }
 

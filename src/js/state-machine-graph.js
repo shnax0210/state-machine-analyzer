@@ -86,7 +86,7 @@ function addStatesToGraph(graph, states) {
 }
 
 function addTransactionToGraph(transaction, graph) {
-    graph.setEdge(transaction.from, transaction.to, {label: transaction.name});
+    graph.setEdge(transaction.from.id, transaction.to.id, {label: transaction.name});
 }
 
 function addTransactionsToGraph(graph, stateMachine) {

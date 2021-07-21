@@ -89,15 +89,15 @@ const ApplicationDiv = styled.div`
             margin: 0 auto;
 `
 
-const IntroductionAre = styled.div`
+const IntroductionAreaDiv = styled.div`
     text-align: center;
 `
 
 const application = (
     <ApplicationDiv>
-        <IntroductionAre>
+        <IntroductionAreaDiv>
             <h1>State machine analyzer</h1>
-        </IntroductionAre>
+        </IntroductionAreaDiv>
         <Tabs tabs={exampleTabs}/>
     </ApplicationDiv>
 );

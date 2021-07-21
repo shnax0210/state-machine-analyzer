@@ -93,7 +93,7 @@ function addTransactionsToGraph(graph, transactions) {
     transactions.forEach(transaction => addTransactionToGraph(transaction, graph));
 }
 
-function collectStates(buildStateMachineTransactions) {
+function collectStates(transactions) {
     const stateIds = new Set();
     const states = [];
 
@@ -104,7 +104,7 @@ function collectStates(buildStateMachineTransactions) {
         }
     }
 
-    buildStateMachineTransactions.forEach(transaction => {
+    transactions.forEach(transaction => {
         addState(transaction.from);
         addState(transaction.to);
     })

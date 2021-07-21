@@ -10,7 +10,7 @@ There is single initial state where status="Open".
 And there are a bunch of events that change "status" variable.
 */
 
-return {
+const stateMachineDefinition = {
     initialStates: [{
         status: "Open"
    }],
@@ -28,7 +28,9 @@ return {
             handle: (state) => { if(state.status === "Done" || state.status === "InProgress") state.status = "Open" }
        }
    ]
-}`
+};
+
+facade.renderGraph(facade.buildTransactions(stateMachineDefinition));`
     },
     {
         name: "2. Task workflow (object state)",
@@ -49,7 +51,7 @@ task={
 Please check next examples to see what we can do with it.
 */
 
-return {
+const stateMachineDefinition = {
     initialStates: [{
         task: {
             status: "Open",
@@ -78,7 +80,9 @@ return {
             handle: (state) => { if(state.task.status === "Done" || state.task.status === "InProgress") state.task.status = "Open" }
        }
    ]
-}`
+};
+
+facade.renderGraph(facade.buildTransactions(stateMachineDefinition));`
     },
     {
         name: "3. Task workflow (invalid state highlighting)",
@@ -100,7 +104,7 @@ However if you want not to stop state machine when it finds invalid state
 you can uncomment "continueOnInvalidState: true," line to achive it.
 */
 
-return {
+const stateMachineDefinition = {
     initialStates: [{
         task: {
             status: "Open",
@@ -137,7 +141,9 @@ return {
             handle: (state) => { if(state.task.status === "Done" || state.task.status === "InProgress") state.task.status = "Open" }
        }
    ]
-}`
+}
+
+facade.renderGraph(facade.buildTransactions(stateMachineDefinition));`
     },
     {
         name: "4. Task workflow (invalid state fix)",
@@ -149,7 +155,7 @@ In previous example we highlighted invalid state.
 Here we just with "StartWorking" event handler in order to make the invalid state not possible.
 */
 
-return {
+const stateMachineDefinition = {
     initialStates: [{
         task: {
             status: "Open",
@@ -186,5 +192,7 @@ return {
             handle: (state) => { if(state.task.status === "Done" || state.task.status === "InProgress") state.task.status = "Open" }
        }
    ]
-}`
+};
+
+facade.renderGraph(facade.buildTransactions(stateMachineDefinition));`
     }]

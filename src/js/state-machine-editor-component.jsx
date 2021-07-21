@@ -3,8 +3,9 @@ const styled = require('styled-components').default;
 
 const Graph = require('./state-machine-graph-component.jsx').Graph;
 
-const buildStateMachineTransactions = require('./state-machine-transactions-builder.js').build;
-const renderStateMachineGraph = require('./state-machine-graph').renderStateMachineGraph;
+const stateMachineFacade = require('./state-machine-facade.js').facade;
+
+const constants = require('./constans').constants;
 
 function addCodeSaving(editor, variableNameForCodeSaving) {
     editor.getSession().on('change', () => window.localStorage.setItem(variableNameForCodeSaving, editor.getValue()));
@@ -26,7 +27,6 @@ function createAceEditor(elementId, isCodeSavingEnabled) {
 }
 
 const EDITOR_ID = "stateMachineEditorId";
-const GRAPH_ID = "stateMachineGraphId";
 
 const EditorDiv = styled.div`
     height: 350px;
@@ -84,7 +84,7 @@ class Editor extends React.Component {
     runEditorCode() {
         try {
             this.setState({hasError: false});
-            renderStateMachineGraph(`#${GRAPH_ID}`, buildStateMachineTransactions(new Function(this.aceEditor.getValue())()));
+            (new Function("facade", this.aceEditor.getValue()))(stateMachineFacade);
         } catch (err) {
             this.setState({hasError: true});
             throw err;
@@ -95,9 +95,9 @@ class Editor extends React.Component {
         return (
             <div>
                 <EditorDiv id={EDITOR_ID}/>
-                <RunButton onClick={this.runEditorCode}>Build graph</RunButton>
+                <RunButton onClick={this.runEditorCode}>Run code</RunButton>
                 {this.state.hasError ? <ErrorAlert/> : ""}
-                <Graph id={GRAPH_ID}/>
+                <Graph id={constants.GRAPH_ID}/>
             </div>
         );
     }

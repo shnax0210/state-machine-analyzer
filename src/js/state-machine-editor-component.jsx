@@ -3,7 +3,7 @@ const styled = require('styled-components').default;
 
 const Graph = require('./state-machine-graph-component.jsx').Graph;
 
-const buildStateMachine = require('./state-machine-builder').build;
+const buildStateMachineTransactions = require('./state-machine-transactions-builder.js').build;
 const renderStateMachineGraph = require('./state-machine-graph').renderStateMachineGraph;
 
 function addCodeSaving(editor, variableNameForCodeSaving) {
@@ -84,7 +84,7 @@ class Editor extends React.Component {
     runEditorCode() {
         try {
             this.setState({hasError: false});
-            renderStateMachineGraph(`#${GRAPH_ID}`, buildStateMachine(new Function(this.aceEditor.getValue())()));
+            renderStateMachineGraph(`#${GRAPH_ID}`, buildStateMachineTransactions(new Function(this.aceEditor.getValue())()));
         } catch (err) {
             this.setState({hasError: true});
             throw err;

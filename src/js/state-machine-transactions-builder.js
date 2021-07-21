@@ -163,10 +163,7 @@ function build(stateMachineDefinition) {
         }
     }
 
-    return {
-        states: achievedStates,
-        transactions: transactions
-    };
+    return transactions;
 }
 
 exports.build = build;

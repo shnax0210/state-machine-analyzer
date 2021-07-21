@@ -89,25 +89,44 @@ function addTransactionToGraph(transaction, graph) {
     graph.setEdge(transaction.from.id, transaction.to.id, {label: transaction.name});
 }
 
-function addTransactionsToGraph(graph, stateMachine) {
-    if (!stateMachine.transactions || !stateMachine.transactions.length) {
-        return;
-    }
-
-    stateMachine.transactions.forEach(transaction => addTransactionToGraph(transaction, graph));
+function addTransactionsToGraph(graph, transactions) {
+    transactions.forEach(transaction => addTransactionToGraph(transaction, graph));
 }
 
-function createStateMachineGraph(stateMachine) {
+function collectStates(buildStateMachineTransactions) {
+    const stateIds = new Set();
+    const states = [];
+
+    function addState(state) {
+        if (!stateIds.has(state.id)) {
+            stateIds.add(state.id);
+            states.push(state);
+        }
+    }
+
+    buildStateMachineTransactions.forEach(transaction => {
+        addState(transaction.from);
+        addState(transaction.to);
+    })
+
+    return states;
+}
+
+function createStateMachineGraph(transactions) {
+    if (!transactions || !transactions.length) {
+        throw new Error(`There should be at least one transaction but: ${transactions} was provided`);
+    }
+
     const graph = new dagreD3.graphlib.Graph().setGraph({})
 
-    addStatesToGraph(graph, stateMachine.states)
-    addTransactionsToGraph(graph, stateMachine);
+    addStatesToGraph(graph, collectStates(transactions));
+    addTransactionsToGraph(graph, transactions);
 
     return graph;
 }
 
-function renderStateMachineGraph(containerSelector, stateMachine) {
-    renderGraph(containerSelector, createStateMachineGraph(stateMachine));
+function renderStateMachineGraph(containerSelector, stateMachineTransactions) {
+    renderGraph(containerSelector, createStateMachineGraph(stateMachineTransactions));
 }
 
 exports.renderStateMachineGraph = renderStateMachineGraph;

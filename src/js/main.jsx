@@ -118,7 +118,7 @@ const exampleTabs = [{
     {
         name: "Documentation",
         path: "/documentation",
-        component: () => <h1>Hello</h1>
+        component: () => <h1>Please find it in <a href="https://github.com/shnax0210/state-machine-analyzer">Git repository</a></h1>
     }]
 
 const ApplicationDiv = styled.div`

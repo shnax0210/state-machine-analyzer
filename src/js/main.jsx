@@ -150,6 +150,7 @@ class Application extends React.Component {
     }
 }
 
+window.stateMachineScriptHost = (new URL(document.currentScript.src)).origin;
 
 window.renderStateMachine = function (containerId, history) {
     history = history || createBrowserHistory();

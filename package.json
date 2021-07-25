@@ -24,7 +24,7 @@
   },
   "scripts": {
     "build": "browserify src/js/main.jsx -o dest/js/bundle.js -t [ babelify --presets [ @babel/preset-env @babel/preset-react ] ]",
-    "start": "static-server -n index.html"
+    "start": "static-server -n index.html -p 9082"
   },
   "author": "shnax0210@gmail.com",
   "license": "MIT"

@@ -69,7 +69,7 @@ function loadAce() {
         }
         
         const script = document.createElement('script');
-        script.src = "lib/ace-builds-master/src-noconflict/ace.js";
+        script.src = `${window.stateMachineScriptHost}/lib/ace-builds-master/src-noconflict/ace.js`;
         script.type = "text/javascript";
         script.onload = () => resolve();
 

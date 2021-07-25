@@ -1,9 +1,11 @@
 const React = require('react');
 const ReactDOM = require('react-dom');
 
-const BrowserRouter = require('react-router-dom').BrowserRouter;
+const Router = require('react-router-dom').Router;
 const Switch = require('react-router-dom').Switch;
 const Route = require('react-router-dom').Route;
+const createBrowserHistory = require('history').createBrowserHistory;
+
 const Link = require('react-router-dom').Link;
 
 const styled = require('styled-components').default;
@@ -98,7 +100,7 @@ class Tabs extends React.Component {
 }
 
 
-const exampleTabs = [{
+const tabConfigurations = [{
         name: "Code area",
         path: "/code-area",
         component: () => {
@@ -126,21 +128,30 @@ const ApplicationDiv = styled.div`
             flex-direction: column;
             width: 95%;
             margin: 0 auto;
+            font-family: Garamond, serif;
 `
 
 const IntroductionAreaDiv = styled.div`
     text-align: center;
 `
 
-const application = (
-    <ApplicationDiv>
-        <BrowserRouter>
-            <IntroductionAreaDiv>
-                <h1>State machine analyzer</h1>
-            </IntroductionAreaDiv>
-            <Tabs tabs={exampleTabs}/>
-        </BrowserRouter>
-    </ApplicationDiv>
-);
+class Application extends React.Component {
+    render() {
+        return (
+            <ApplicationDiv>
+                <Router history={this.props.history}>
+                    <IntroductionAreaDiv>
+                        <h1>State machine analyzer</h1>
+                    </IntroductionAreaDiv>
+                    <Tabs tabs={tabConfigurations}/>
+                </Router>
+            </ApplicationDiv>
+        );
+    }
+}
 
-ReactDOM.render(application, document.getElementById('application'));
+
+window.renderStateMachine = function (containerId, history) {
+    history = history || createBrowserHistory();
+    ReactDOM.render(<Application history={history}/>, document.getElementById(containerId));
+}

@@ -61,6 +61,22 @@ class ErrorAlert extends React.Component {
     }
 }
 
+function loadAce() {
+    return new Promise((resolve, reject) => {
+        if(window.ace) {
+            resolve();
+            return;
+        }
+        
+        const script = document.createElement('script');
+        script.src = "lib/ace-builds-master/src-noconflict/ace.js";
+        script.type = "text/javascript";
+        script.onload = () => resolve();
+
+        document.body.append(script);
+    });
+}
+
 class Editor extends React.Component {
     constructor(props) {
         super(props);
@@ -69,16 +85,21 @@ class Editor extends React.Component {
     }
 
     componentDidMount() {
-        this.aceEditor = createAceEditor(EDITOR_ID, this.props.isCodeSavingEnabled);
-        if (this.props.prepopulatedCode) {
-            this.aceEditor.setValue(this.props.prepopulatedCode);
-        }
+        this.aceLoad = loadAce();
+        this.aceLoad.then(() => {
+            this.aceEditor = createAceEditor(EDITOR_ID, this.props.isCodeSavingEnabled);
+            if (this.props.prepopulatedCode) {
+                this.aceEditor.setValue(this.props.prepopulatedCode);
+            }
+        })
     }
 
     componentDidUpdate() {
-        if (this.props.prepopulatedCode) {
-            this.aceEditor.setValue(this.props.prepopulatedCode);
-        }
+        this.aceLoad.then(() => {
+            if (this.props.prepopulatedCode) {
+                this.aceEditor.setValue(this.props.prepopulatedCode);
+            }
+        });
     }
     
     runEditorCode() {

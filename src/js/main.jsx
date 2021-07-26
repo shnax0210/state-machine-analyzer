@@ -81,7 +81,7 @@ class Tabs extends React.Component {
             
             const DefaultTabRouter = () => {
                 const firstTab = this.props.tabs[0];
-                return <Route><Redirect to={firstTab.path}/></Route>;
+                return <Route path={this.props.basePath}><Redirect to={firstTab.path}/></Route>;
             }
 
             return (<Switch>
@@ -161,4 +161,8 @@ window.renderStateMachine = function (containerId, history, basePath) {
     basePath = basePath || "/state-machine";
 
     ReactDOM.render(<Application history={history} basePath={basePath}/>, document.getElementById(containerId));
+}
+
+window.unmountStateMachine = function (containerId) {
+    ReactDOM.unmountComponentAtNode(document.getElementById(containerId));
 }

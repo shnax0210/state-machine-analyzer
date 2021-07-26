@@ -4,6 +4,7 @@ const ReactDOM = require('react-dom');
 const Router = require('react-router-dom').Router;
 const Switch = require('react-router-dom').Switch;
 const Route = require('react-router-dom').Route;
+const Redirect = require('react-router-dom').Redirect;
 const createBrowserHistory = require('history').createBrowserHistory;
 
 const Link = require('react-router-dom').Link;
@@ -79,8 +80,8 @@ class Tabs extends React.Component {
             });
             
             const DefaultTabRouter = () => {
-                const FirstTabContent = this.props.tabs[0].component;
-                return <Route><FirstTabContent/></Route>;
+                const firstTab = this.props.tabs[0];
+                return <Route><Redirect to={firstTab.path}/></Route>;
             }
 
             return (<Switch>
@@ -100,33 +101,9 @@ class Tabs extends React.Component {
 }
 
 
-const tabConfigurations = [{
-        name: "Code area",
-        path: "/code-area",
-        component: () => {
-            return (
-                <div>
-                    <h1>Please define your state machine here:</h1>
-                    <Editor isCodeSavingEnabled={true}/>
-                </div>
-            );
-        }
-    },
-    {
-        name: "Examples",
-        path: "/examples",
-        component: () => <Examples/>
-    },
-    {
-        name: "Documentation",
-        path: "/documentation",
-        component: () => <h1>Please find it in <a href="https://github.com/shnax0210/state-machine-analyzer">Git repository</a></h1>
-    }]
-
 const ApplicationDiv = styled.div`
             display: flex;
             flex-direction: column;
-            width: 95%;
             margin: 0 auto;
             font-family: Garamond, serif;
 `
@@ -136,6 +113,33 @@ const IntroductionAreaDiv = styled.div`
 `
 
 class Application extends React.Component {
+    constructor(props) {
+        super(props);
+        this.tabConfigurations = [{
+            name: "Code area",
+            path: `${props.basePath}/code-area`,
+            component: () => {
+                return (
+                    <div>
+                        <h1>Please define your state machine here:</h1>
+                        <Editor isCodeSavingEnabled={true}/>
+                    </div>
+                );
+            }
+        },
+            {
+                name: "Examples",
+                path: `${props.basePath}/examples`,
+                component: () => <Examples/>
+            },
+            {
+                name: "Documentation",
+                path: `${props.basePath}/documentation`,
+                component: () => <h1>Please find it in <a href="https://github.com/shnax0210/state-machine-analyzer">Git
+                    repository</a></h1>
+            }]
+    }
+
     render() {
         return (
             <ApplicationDiv>
@@ -143,7 +147,7 @@ class Application extends React.Component {
                     <IntroductionAreaDiv>
                         <h1>State machine analyzer</h1>
                     </IntroductionAreaDiv>
-                    <Tabs tabs={tabConfigurations}/>
+                    <Tabs tabs={this.tabConfigurations} basePath={this.props.basePath}/>
                 </Router>
             </ApplicationDiv>
         );
@@ -152,7 +156,9 @@ class Application extends React.Component {
 
 window.stateMachineScriptHost = (new URL(document.currentScript.src)).origin;
 
-window.renderStateMachine = function (containerId, history) {
+window.renderStateMachine = function (containerId, history, basePath) {
     history = history || createBrowserHistory();
-    ReactDOM.render(<Application history={history}/>, document.getElementById(containerId));
+    basePath = basePath || "/state-machine";
+
+    ReactDOM.render(<Application history={history} basePath={basePath}/>, document.getElementById(containerId));
 }

@@ -1,3 +1,6 @@
 exports.constants = {
-    GRAPH_ID: "stateMachineGraphId"
+    GRAPH_ID: "stateMachineGraphId",
+    DEFAULT_BUTTON_COLOR: "#008CBA",
+    DEFAULT_HOVERED_BUTTON_COLOR: "#008C90",
+    DEFAULT_SELECTED_BUTTON_COLOR: "#008CA0"
 }

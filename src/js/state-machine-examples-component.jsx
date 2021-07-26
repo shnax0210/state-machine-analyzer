@@ -1,26 +1,31 @@
 const React = require('react');
 const styled = require('styled-components').default;
 
+const constants = require('./constans').constants;
+
 const Editor = require('./state-machine-editor-component.jsx').Editor;
 
 const EXAMPLES = require('./state-machine-examples.js').EXAMPLES;
 
 const ExampleButton = styled.button`
-            background-color: #008CBA;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            height: 30px;
-            margin: 0 15px;
+    background-color: ${constants.DEFAULT_BUTTON_COLOR};
+    color: white;
+    border: none;
+    border-radius: 12px;
+    height: 30px;
+    margin: 0 15px;
+    &:hover {
+        background-color: ${constants.DEFAULT_HOVERED_BUTTON_COLOR};
+    }
 `
 
 const ShownExampleButton = styled(ExampleButton)`
-    background-color: #001D50;
+    background-color: ${constants.DEFAULT_SELECTED_BUTTON_COLOR};
 `
 
 const AvailableExamplesArea = styled.div`
-            display: flex;
-            flex-wrap: wrap;
+    display: flex;
+    flex-wrap: wrap;
 `
 
 class Examples extends React.Component {

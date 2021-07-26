@@ -2,6 +2,8 @@ const React = require('react');
 const styled = require('styled-components').default;
 const css = require('styled-components').css;
 
+const constants = require('./constans').constants;
+
 const GraphAreaDiv = styled.div`
             border:2px solid #000;
             overflow: auto;
@@ -18,12 +20,15 @@ const GraphDiv = styled.div`
 `
 
 const GraphResizeButton = styled.button`
-            background-color: #008CBA;
+            background-color: ${constants.DEFAULT_BUTTON_COLOR};
             color: white;
             border: none;
             border-radius: 12px;
             height: 30px;
             margin: 5px 5px;
+            &:hover {
+                background-color: ${constants.DEFAULT_HOVERED_BUTTON_COLOR};
+            }
 `
 
 const graphStyles = `

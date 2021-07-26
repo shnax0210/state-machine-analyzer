@@ -28,6 +28,9 @@ const ListItem = styled.li`
     background-color: #f1f1f1;
     text-align: center;
     vertical-align: middle;
+    &:hover {
+        background-color: #606060;
+    }
 `
 
 const SelectedListItem = styled(ListItem)`

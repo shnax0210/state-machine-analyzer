@@ -33,13 +33,16 @@ const EditorDiv = styled.div`
 `;
 
 const RunButton = styled.button`
-            background-color: #008CBA;
+            background-color: ${constants.DEFAULT_BUTTON_COLOR};
             margin: 15px 0;
             height: 30px;
             width: 100%;
             color: white;
             border: none;
             border-radius: 12px;
+            &:hover {
+                background-color: ${constants.DEFAULT_HOVERED_BUTTON_COLOR};
+            }
 `;
 
 const ErrorAlertDiv = styled.button`

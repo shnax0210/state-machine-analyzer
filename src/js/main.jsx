@@ -161,7 +161,7 @@ window.stateMachineScriptHost = (new URL(document.currentScript.src)).origin;
 
 window.renderStateMachine = function (containerId, history, basePath) {
     history = history || createBrowserHistory();
-    basePath = basePath || "/state-machine";
+    basePath = basePath || "";
 
     ReactDOM.render(<Application history={history} basePath={basePath}/>, document.getElementById(containerId));
 }

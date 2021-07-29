@@ -1,64 +1,58 @@
 const _ = require('lodash');
-
-const INITIAL_STATE_MARK = {
-    label: "Initial",
-    color: "blue"
-}
-
-const VALID_STATE_MARK = {
-    label: "Valid",
-    color: "green"
-}
-
-const INVALID_STATE_MARK = {
-    label: "InValid",
-    color: "red"
-}
+const stateMarks = require('./constans.js').stateMarks;
+const transactionMarks = require('./constans.js').transactionMarks;
 
 const NOT_VALID_STEP_FAIL = "NOT_VALID_STEP_FAIL";
 
-function findState(states, stateObject) {
-    const foundState = states.find(state => _.isEqual(state.stateObject, stateObject));
-    return foundState ? foundState : null;
+function findStateWrapper(stateWrappers, state) {
+    const foundStateWrapper = stateWrappers.find(stateWrapper => _.isEqual(stateWrapper.state, state));
+    return foundStateWrapper ? foundStateWrapper : null;
 }
 
-function createState(stateId, stateObject, stateMark) {
+function createStateWrapper(stateId, state, stateMark) {
     return {
         id: stateId,
-        stateObject: stateObject,
+        state: state,
         mark: stateMark
     }
 }
 
-function prepareInitialStates(initialStateObjects) {
-    return initialStateObjects.map((stateObject, index) => createState(index, stateObject, INITIAL_STATE_MARK));
+function prepareInitialStateWrappers(initialStates) {
+    return initialStates.map((state, index) => createStateWrapper(index, state, stateMarks.INITIAL));
 }
 
 function defineMark(stateObject, isStateValid) {
-    return isStateValid(stateObject) ? VALID_STATE_MARK : INVALID_STATE_MARK;
+    return isStateValid(stateObject) ? stateMarks.VALID : stateMarks.INVALID;
 }
 
-function createStateAndRegister(existingStates, stateObject, isStateValid) {
-    const newState = createState(existingStates.length, stateObject, defineMark(stateObject, isStateValid));
-    existingStates.push(newState);
-    return newState;
+function createStateWrapperAndRegister(existingStateWrappers, state, isStateValid) {
+    const newStateWrapper = createStateWrapper(existingStateWrappers.length, state, defineMark(state, isStateValid));
+    existingStateWrappers.push(newStateWrapper);
+    return newStateWrapper;
 }
 
-function findOrCreateState(existingStates, stateObject, isStateValid) {
-    const existingState = findState(existingStates, stateObject);
-    if (existingState) {
-        return [existingState, false]
+function findOrCreateStateWrapper(existingStateWrappers, state, isStateValid) {
+    const existingStateWrapper = findStateWrapper(existingStateWrappers, state);
+    if (existingStateWrapper) {
+        return [existingStateWrapper, false]
     }
 
-    return [createStateAndRegister(existingStates, stateObject, isStateValid), true];
+    return [createStateWrapperAndRegister(existingStateWrappers, state, isStateValid), true];
 }
 
-function createTransaction(event, fromState, toState) {
-    return {
+function defineTransactionMark(transaction, isTransactionValid) {
+    return isTransactionValid(transaction) ? transactionMarks.VALID : transactionMarks.INVALID;
+}
+
+function createTransaction(event, fromStateWrapper, toStateWrapper, isTransactionValid) {
+    const transaction = {
         name: event.name,
-        from: fromState,
-        to: toState
-    }
+        from: fromStateWrapper,
+        to: toStateWrapper
+    };
+
+    transaction.mark = defineTransactionMark(transaction, isTransactionValid);
+    return transaction;
 }
 
 function checkBaseStateMachineDefinition(stateMachineDefinition) {
@@ -116,46 +110,68 @@ function checkAndAdjustIsStateValidFunction(stateMachineDefinition) {
     }
 }
 
+function checkAndAdjustIsTransactionValidFunction(stateMachineDefinition) {
+    if (stateMachineDefinition.isTransactionValid && !_.isFunction(stateMachineDefinition.isTransactionValid)) {
+        throw new Error(`"isTransactionValid" property should be a function: ${stateMachineDefinition.isTransactionValid}`);
+    }
+
+    if (!stateMachineDefinition.isTransactionValid) {
+        console.info(`"isTransactionValid" function was not provided, default one will be used`)
+        stateMachineDefinition.isTransactionValid = () => true;
+    }
+}
+
 function checkAndAdjustStateMachineDefinition(stateMachineDefinition) {
     [checkBaseStateMachineDefinition,
         checkInitialStatesDefinition,
         checkEventsDefinition,
-        checkAndAdjustIsStateValidFunction].forEach(check => check(stateMachineDefinition))
+        checkAndAdjustIsStateValidFunction,
+        checkAndAdjustIsTransactionValidFunction].forEach(check => check(stateMachineDefinition))
 }
 
-function checkIfStopNeeded(toState, stateMachineDefinition) {
-    if (!stateMachineDefinition.continueOnInvalidState && _.isEqual(toState.mark, INVALID_STATE_MARK)) {
-        throw NOT_VALID_STEP_FAIL
+function checkIfStopNeededDueToState(stateWrapper, stateMachineDefinition) {
+    if(!stateMachineDefinition.continueOnInvalidState && _.isEqual(stateWrapper.mark, stateMarks.INVALID)) {
+        throw NOT_VALID_STEP_FAIL;
+    }
+}
+
+function checkIfStopNeededDueToTransaction(transaction, stateMachineDefinition) {
+    if(!stateMachineDefinition.continueOnInvalidTransaction && _.isEqual(transaction.mark, transactionMarks.INVALID)) {
+        throw NOT_VALID_STEP_FAIL;
     }
 }
 
 function build(stateMachineDefinition) {
     checkAndAdjustStateMachineDefinition(stateMachineDefinition);
     
-    const achievedStates = prepareInitialStates(stateMachineDefinition.initialStates);
-    let inProcessStates = _.cloneDeep(achievedStates);
+    const achievedStateWrappers = prepareInitialStateWrappers(stateMachineDefinition.initialStates);
+    let inProcessStateWrappers = _.cloneDeep(achievedStateWrappers);
 
     const transactions = [];
 
     try {
-        while (inProcessStates.length) {
-            const statesForNextProcessing = [];
-            inProcessStates.forEach(fromState => {
+        while (inProcessStateWrappers.length) {
+            const stateWrappersForNextProcessing = [];
+            inProcessStateWrappers.forEach(fromStateWrapper => {
                 stateMachineDefinition.events.forEach(event => {
-                    const toStateObject = _.cloneDeep(fromState.stateObject)
-                    event.handle(toStateObject);
+                    const toState = _.cloneDeep(fromStateWrapper.state)
+                    event.handle(toState);
 
-                    if (!_.isEqual(fromState.stateObject, toStateObject)) {
-                        let [toState, isNewState] = findOrCreateState(achievedStates, toStateObject, stateMachineDefinition.isStateValid);
-
-                        transactions.push(createTransaction(event, fromState, toState));
-                        if (isNewState) statesForNextProcessing.push(toState);
+                    if (!_.isEqual(fromStateWrapper.state, toState)) {
+                        const [toStateWrapper, isNewStateWrapper] = findOrCreateStateWrapper(achievedStateWrappers, toState, stateMachineDefinition.isStateValid);
+                        const transaction = createTransaction(event, fromStateWrapper, toStateWrapper, stateMachineDefinition.isTransactionValid);
                         
-                        checkIfStopNeeded(toState, stateMachineDefinition);
+                        transactions.push(transaction);
+                        checkIfStopNeededDueToTransaction(transaction, stateMachineDefinition);
+                        
+                        if (isNewStateWrapper) {
+                            checkIfStopNeededDueToState(toStateWrapper, stateMachineDefinition);
+                            stateWrappersForNextProcessing.push(toStateWrapper);
+                        }
                     }
                 })
             })
-            inProcessStates = statesForNextProcessing;
+            inProcessStateWrappers = stateWrappersForNextProcessing;
         }
     } catch (err) {
         if (err !== NOT_VALID_STEP_FAIL) {

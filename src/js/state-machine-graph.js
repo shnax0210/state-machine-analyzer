@@ -1,5 +1,7 @@
 const d3 = require('d3');
 const dagreD3 = require('dagre-d3');
+const stateMarks = require('./constans.js').stateMarks;
+const transactionMarks = require('./constans.js').transactionMarks;
 
 function createSvgGroup(svg) {
     return svg.append("g");
@@ -70,23 +72,39 @@ function createStateLabel(state, offset) {
         .join("\n");
 }
 
-function buildStateCssClass(stateMark) {
-    return `graph--node_${stateMark.color}`
+function convertStateMarkToColor(mark) {
+    if(mark === stateMarks.INITIAL) return "#0000FF";
+    if(mark === stateMarks.VALID) return "#008000";
+    if(mark === stateMarks.INVALID) return "#ff0000";
+
+    throw new Error(`Unknown state mark: ${mark}`);
 }
 
-function addStatesToGraph(graph, states) {
-    if (!states) {
+function addStatesToGraph(graph, stateWrappers) {
+    if (!stateWrappers) {
         return;
     }
 
-    states.forEach(state => graph.setNode(state.id, {
-        label: createStateLabel(state.stateObject),
-        class: buildStateCssClass(state.mark)
+    stateWrappers.forEach(stateWrapper => graph.setNode(stateWrapper.id, {
+        label: createStateLabel(stateWrapper.state),
+        style: `fill: ${convertStateMarkToColor(stateWrapper.mark)}`
     }));
 }
 
+function convertTransactionMarkToStyles(mark) {
+    if(mark === transactionMarks.VALID) return ["fill: #333", "stroke: #333; stroke-width: 1.5px; fill: none;"];
+    if(mark === transactionMarks.INVALID) return ["fill: #ff0000", "stroke: #ff0000; stroke-width: 5px; fill: none;"];
+
+    throw new Error(`Unknown transaction mark: ${mark}`);
+}
+
 function addTransactionToGraph(transaction, graph) {
-    graph.setEdge(transaction.from.id, transaction.to.id, {label: transaction.name});
+    const [arrowheadStyle, style] = convertTransactionMarkToStyles(transaction.mark);
+    graph.setEdge(transaction.from.id, transaction.to.id, {
+        label: transaction.name, 
+        arrowheadStyle: arrowheadStyle, 
+        style: style
+    });
 }
 
 function addTransactionsToGraph(graph, transactions) {

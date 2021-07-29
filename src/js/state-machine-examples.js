@@ -1,6 +1,6 @@
 exports.EXAMPLES = [
     {
-        name: "1. Task workflow (simple state)",
+        name: "1.1 Task workflow (simple state)",
         code: `/*
 This is first example for emulation of working on some task. 
 
@@ -33,7 +33,7 @@ const stateMachineDefinition = {
 facade.renderGraph(facade.buildTransactions(stateMachineDefinition));`
     },
     {
-        name: "2. Task workflow (object state)",
+        name: "1.2 Task workflow (object state)",
         code: `/*
 This is second example for emulation of working on some task. 
 
@@ -85,7 +85,7 @@ const stateMachineDefinition = {
 facade.renderGraph(facade.buildTransactions(stateMachineDefinition));`
     },
     {
-        name: "3. Task workflow (invalid state highlighting)",
+        name: "1.3 Task workflow (invalid state highlighting)",
         code: `/*
 This is third example for emulation of working on some task. 
 
@@ -146,7 +146,7 @@ const stateMachineDefinition = {
 facade.renderGraph(facade.buildTransactions(stateMachineDefinition));`
     },
     {
-        name: "4. Task workflow (invalid state fix)",
+        name: "1.4 Task workflow (invalid state fix)",
         code: `/*
 This is fourth example for emulation of working on some task. 
 
@@ -190,6 +190,72 @@ const stateMachineDefinition = {
        {
             name: "Reopen",
             handle: (state) => { if(state.task.status === "Done" || state.task.status === "InProgress") state.task.status = "Open" }
+       }
+   ]
+};
+
+facade.renderGraph(facade.buildTransactions(stateMachineDefinition));`
+    },
+    {
+        name: "2 Billing address update",
+        code: `/*
+Examples emulates updating billing address from UI by ajax calls.
+*/
+
+const ADDRESS1 = {
+    name: "ADDRESS1",
+    tax: 5
+}
+
+const ADDRESS2 = {
+    name: "ADDRESS2",
+    tax: 10
+}
+
+function calculateTotalPrice(cart) {
+    if(!cart.billingAddress) {
+        return cart.price;
+    }
+    
+    return cart.price + cart.billingAddress.tax;
+}
+
+const stateMachineDefinition = {
+    initialStates: [{
+        cart: {
+            price: 20,
+            totalPrice: 20,
+            billingAddress: null
+        },
+        ui: {
+            totalPrice: 20
+        }
+   }],
+   isTransactionValid(transaction) {
+        console.log(" transaction.to=" +  JSON.stringify(transaction.to))
+        if(transaction.name === "UpdatePriceOnUi" && transaction.to.state.ui.totalPrice !== calculateTotalPrice(transaction.to.state.cart)) {
+            return false;
+        }
+       
+        return true;
+   },
+   /*continueOnInvalidTransaction: true,*/
+   events: [
+       {
+            name: "SetBillingAddress1",
+            handle: (state) => { state.cart.billingAddress = ADDRESS1 }
+       },
+       {
+            name: "SetBillingAddress2",
+            handle: (state) => { state.cart.billingAddress = ADDRESS2 }
+       },
+       {
+            name: "CalculateCart",
+            handle: (state) => { state.cart.totalPrice = calculateTotalPrice(state.cart) }
+       },
+       {
+           name: "UpdatePriceOnUi",
+           handle: (state) => { state.ui.totalPrice = state.cart.totalPrice }
        }
    ]
 };

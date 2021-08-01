@@ -97,7 +97,11 @@ class Editor extends React.Component {
         })
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(prevProps) {
+        if(prevProps.prepopulatedCode === this.props.prepopulatedCode) {
+            return;
+        }
+        
         this.aceLoad.then(() => {
             if (this.props.prepopulatedCode) {
                 this.aceEditor.setValue(this.props.prepopulatedCode);

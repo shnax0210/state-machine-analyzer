@@ -2,6 +2,8 @@ const _ = require('lodash');
 const stateMarks = require('./constans.js').stateMarks;
 const transactionMarks = require('./constans.js').transactionMarks;
 
+const markTransactionsThatLeadsToInvalid = require('./state-machine-transaction-paths-marker.js').markTransactionsThatLeadsToInvalid;
+
 const NOT_VALID_STEP_FAIL = "NOT_VALID_STEP_FAIL";
 
 function findStateWrapper(stateWrappers, state) {
@@ -179,6 +181,7 @@ function build(stateMachineDefinition) {
         }
     }
 
+    markTransactionsThatLeadsToInvalid(transactions);
     return transactions;
 }
 

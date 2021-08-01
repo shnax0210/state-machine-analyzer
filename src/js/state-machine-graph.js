@@ -94,6 +94,7 @@ function addStatesToGraph(graph, stateWrappers) {
 function convertTransactionMarkToStyles(mark) {
     if(mark === transactionMarks.VALID) return ["fill: #333", "stroke: #333; stroke-width: 1.5px; fill: none;"];
     if(mark === transactionMarks.INVALID) return ["fill: #ff0000", "stroke: #ff0000; stroke-width: 5px; fill: none;"];
+    if(mark === transactionMarks.LEADS_TO_INVALID) return ["fill: #f75723", "stroke: #f75723; stroke-width: 4px; fill: none;"];
 
     throw new Error(`Unknown transaction mark: ${mark}`);
 }

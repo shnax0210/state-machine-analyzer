@@ -20,11 +20,13 @@
     "@babel/preset-react": "7.14.5",
     "babelify": "10.0.0",
     "browserify": "17.0.0",
+    "jest": "27.0.6",
     "static-server": "2.2.1"
   },
   "scripts": {
     "build": "browserify src/js/main.jsx -o dest/js/bundle.js -t [ babelify --presets [ @babel/preset-env @babel/preset-react ] ]",
-    "start": "static-server -n index.html -p 9082"
+    "start": "static-server -n index.html -p 9082",
+    "test": "jest"
   },
   "author": "shnax0210@gmail.com",
   "license": "MIT"

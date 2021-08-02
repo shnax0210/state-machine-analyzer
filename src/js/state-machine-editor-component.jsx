@@ -3,7 +3,7 @@ const styled = require('styled-components').default;
 
 const Graph = require('./state-machine-graph-component.jsx').Graph;
 
-const stateMachineFacade = require('./state-machine-facade.js').facade;
+const createStateMachine = require('./state-machine.js').createStateMachine;
 
 const constants = require('./constans').constants;
 
@@ -112,7 +112,7 @@ class Editor extends React.Component {
     runEditorCode() {
         try {
             this.setState({hasError: false});
-            (new Function("facade", this.aceEditor.getValue()))(stateMachineFacade);
+            (new Function("createStateMachine", this.aceEditor.getValue()))(createStateMachine);
         } catch (err) {
             this.setState({hasError: true});
             throw err;

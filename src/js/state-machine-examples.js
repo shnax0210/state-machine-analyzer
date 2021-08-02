@@ -30,7 +30,7 @@ const stateMachineDefinition = {
    ]
 };
 
-createStateMachine(stateMachineDefinition).renderGraph();`
+facade.renderGraph(facade.createStateMachine(stateMachineDefinition));`
     },
     {
         name: "1.2 Task workflow (object state)",
@@ -82,7 +82,7 @@ const stateMachineDefinition = {
    ]
 };
 
-createStateMachine(stateMachineDefinition).renderGraph();`
+facade.renderGraph(facade.createStateMachine(stateMachineDefinition));`
     },
     {
         name: "1.3 Task workflow (invalid state highlighting)",
@@ -143,7 +143,7 @@ const stateMachineDefinition = {
    ]
 }
 
-createStateMachine(stateMachineDefinition).renderGraph();`
+facade.renderGraph(facade.createStateMachine(stateMachineDefinition));`
     },
     {
         name: "1.4 Task workflow (invalid state fix)",
@@ -194,7 +194,7 @@ const stateMachineDefinition = {
    ]
 };
 
-createStateMachine(stateMachineDefinition).renderGraph();`
+facade.renderGraph(facade.createStateMachine(stateMachineDefinition));`
     },
     {
         name: "2 Billing address update",
@@ -292,5 +292,5 @@ const stateMachineDefinition = {
    ]
 };
 
-createStateMachine(stateMachineDefinition).renderGraph();`
+facade.renderGraph(facade.createStateMachine(stateMachineDefinition));`
     }]

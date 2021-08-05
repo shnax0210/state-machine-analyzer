@@ -254,10 +254,10 @@ const stateMachineDefinition = {
             totalPrice: 20
         },
         threads: [{
-            transactions: ["SetBillingAddress1", "CalculateCart", "ReadPrice", "UpdatePriceOnUi"]
+            transactions: ["SetBillingAddress1", "CalculateCart1", "ReadPrice1", "UpdatePriceOnUi1"]
         },
         {
-            transactions: ["SetBillingAddress2", "CalculateCart", "ReadPrice", "UpdatePriceOnUi"]
+            transactions: ["SetBillingAddress2", "CalculateCart2", "ReadPrice2", "UpdatePriceOnUi2"]
         }]
    }],
    isStateValid(state) {
@@ -278,16 +278,28 @@ const stateMachineDefinition = {
             handle: (state) => { executeIfNeededInThread(state, "SetBillingAddress2", () => state.cart.billingAddress = ADDRESS2) }
        },
        {
-            name: "CalculateCart",
-            handle: (state) => { executeIfNeededInThread(state, "CalculateCart", () => state.cart.totalPrice = calculateTotalPrice(state.cart)) }
+            name: "CalculateCart1",
+            handle: (state) => { executeIfNeededInThread(state, "CalculateCart1", () => state.cart.totalPrice = calculateTotalPrice(state.cart)) }
        },
        {
-           name: "ReadPrice",
-           handle: (state) => { executeIfNeededInThread(state, "ReadPrice", (thread) => thread.totalPrice = state.cart.totalPrice) }
+            name: "CalculateCart2",
+            handle: (state) => { executeIfNeededInThread(state, "CalculateCart2", () => state.cart.totalPrice = calculateTotalPrice(state.cart)) }
        },
        {
-           name: "UpdatePriceOnUi",
-           handle: (state) => { executeIfNeededInThread(state, "UpdatePriceOnUi", (thread) => state.ui.totalPrice = thread.totalPrice) }
+           name: "ReadPrice1",
+           handle: (state) => { executeIfNeededInThread(state, "ReadPrice1", (thread) => thread.totalPrice = state.cart.totalPrice) }
+       },
+       {
+           name: "ReadPrice2",
+           handle: (state) => { executeIfNeededInThread(state, "ReadPrice2", (thread) => thread.totalPrice = state.cart.totalPrice) }
+       },
+       {
+           name: "UpdatePriceOnUi1",
+           handle: (state) => { executeIfNeededInThread(state, "UpdatePriceOnUi1", (thread) => state.ui.totalPrice = thread.totalPrice) }
+       },
+       {
+           name: "UpdatePriceOnUi2",
+           handle: (state) => { executeIfNeededInThread(state, "UpdatePriceOnUi2", (thread) => state.ui.totalPrice = thread.totalPrice) }
        }
    ]
 };

@@ -1,15 +1,18 @@
 const _ = require('lodash');
 
-const checkAndAdjustStateMachineDefinition = require('./state-machine-definition-validation.js').checkAndAdjustStateMachineDefinition;
+const preprocess = require('./state-machine-definition-preprocessing.js').preprocess;
 const buildStateMachineTransactions = require('./state-machine-transactions-builder.js').build;
 const findTransactionalPathsBetweenInitialAndInvalidStates = require("./state-machine-paths.js").findTransactionalPathsBetweenInitialAndInvalidStates
 const markTransactionsAsLeadsToInvalid = require("./state-machine-transaction-paths-marker.js").markTransactionsAsLeadsToInvalid;
 
-function createStateMachine(stateMachineDefinition) {
+function preprocessDefinition(stateMachineDefinition) {
     stateMachineDefinition = _.cloneDeep(stateMachineDefinition);
-    checkAndAdjustStateMachineDefinition(stateMachineDefinition);
+    preprocess(stateMachineDefinition);
+    return stateMachineDefinition;
+}
 
-    const transactions = buildStateMachineTransactions(stateMachineDefinition);
+function createStateMachine(stateMachineDefinition) {
+    const transactions = buildStateMachineTransactions(preprocessDefinition(stateMachineDefinition));
     const transactionalPathsToInvalidStates = findTransactionalPathsBetweenInitialAndInvalidStates(transactions);
 
     markTransactionsAsLeadsToInvalid(transactionalPathsToInvalidStates);

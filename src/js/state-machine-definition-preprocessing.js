@@ -44,7 +44,7 @@ function checkEventsDefinition(stateMachineDefinition) {
     });
 }
 
-function checkAndAdjustIsStateValidFunction(stateMachineDefinition) {
+function checkAndPreprocessIsStateValidFunction(stateMachineDefinition) {
     if (stateMachineDefinition.isStateValid && !_.isFunction(stateMachineDefinition.isStateValid)) {
         throw new Error(`"isStateValid" property should be a function: ${stateMachineDefinition.isStateValid}`);
     }
@@ -55,7 +55,7 @@ function checkAndAdjustIsStateValidFunction(stateMachineDefinition) {
     }
 }
 
-function checkAndAdjustIsTransactionValidFunction(stateMachineDefinition) {
+function checkAndPreprocessIsTransactionValidFunction(stateMachineDefinition) {
     if (stateMachineDefinition.isTransactionValid && !_.isFunction(stateMachineDefinition.isTransactionValid)) {
         throw new Error(`"isTransactionValid" property should be a function: ${stateMachineDefinition.isTransactionValid}`);
     }
@@ -66,12 +66,12 @@ function checkAndAdjustIsTransactionValidFunction(stateMachineDefinition) {
     }
 }
 
-function checkAndAdjustStateMachineDefinition(stateMachineDefinition) {
+function preprocess(stateMachineDefinition) {
     [checkBaseStateMachineDefinition,
         checkInitialStatesDefinition,
         checkEventsDefinition,
-        checkAndAdjustIsStateValidFunction,
-        checkAndAdjustIsTransactionValidFunction].forEach(check => check(stateMachineDefinition))
+        checkAndPreprocessIsStateValidFunction,
+        checkAndPreprocessIsTransactionValidFunction].forEach(check => check(stateMachineDefinition))
 }
 
-exports.checkAndAdjustStateMachineDefinition = checkAndAdjustStateMachineDefinition;
+exports.preprocess = preprocess;

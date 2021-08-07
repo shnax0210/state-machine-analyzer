@@ -16,30 +16,30 @@ function checkInitialStatesDefinition(stateMachineDefinition) {
     }
 }
 
-function checkEventsDefinition(stateMachineDefinition) {
-    if (!stateMachineDefinition.events) {
-        throw new Error(`"events" property should be array but is not defined: ${stateMachineDefinition.events}`);
+function checkPotentialActionsDefinition(stateMachineDefinition) {
+    if (!stateMachineDefinition.potentialActions) {
+        throw new Error(`"potentialActions" property should be array but is not defined: ${stateMachineDefinition.potentialActions}`);
     }
 
-    if (!_.isArray(stateMachineDefinition.events)) {
-        throw new Error(`"events" property should be array but it is: ${stateMachineDefinition.events}`);
+    if (!_.isArray(stateMachineDefinition.potentialActions)) {
+        throw new Error(`"potentialActions" property should be array but it is: ${stateMachineDefinition.potentialActions}`);
     }
 
-    stateMachineDefinition.events.forEach(event => {
-        if (!event.name) {
-            throw new Error(`Event "name" property is not defined: ${event.name}`);
+    stateMachineDefinition.potentialActions.forEach(potentialAction => {
+        if (!potentialAction.name) {
+            throw new Error(`potentialAction "name" property is not defined: ${potentialAction.name}`);
         }
 
-        if (!_.isString(event.name)) {
-            throw new Error(`Event "name" property is not a string: ${event.name}`);
+        if (!_.isString(potentialAction.name)) {
+            throw new Error(`potentialAction "name" property is not a string: ${potentialAction.name}`);
         }
 
-        if (!event.handle) {
-            throw new Error(`Event "handle" property is not defined: ${event.handle}, for event with name: ${event.name}`);
+        if (!potentialAction.handle) {
+            throw new Error(`potentialAction "handle" property is not defined: ${potentialAction.handle}, for potentialAction with name: ${potentialAction.name}`);
         }
 
-        if (!_.isFunction(event.handle)) {
-            throw new Error(`Event "handle" property is not a function: ${event.handle}, for event with name: ${event.name}`);
+        if (!_.isFunction(potentialAction.handle)) {
+            throw new Error(`potentialAction "handle" property is not a function: ${potentialAction.handle}, for potentialAction with name: ${potentialAction.name}`);
         }
     });
 }
@@ -69,7 +69,7 @@ function checkAndPreprocessIsTransactionValidFunction(stateMachineDefinition) {
 function preprocess(stateMachineDefinition) {
     [checkBaseStateMachineDefinition,
         checkInitialStatesDefinition,
-        checkEventsDefinition,
+        checkPotentialActionsDefinition,
         checkAndPreprocessIsStateValidFunction,
         checkAndPreprocessIsTransactionValidFunction].forEach(check => check(stateMachineDefinition))
 }

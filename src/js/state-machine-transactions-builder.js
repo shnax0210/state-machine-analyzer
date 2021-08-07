@@ -44,9 +44,9 @@ function defineTransactionMark(transaction, isTransactionValid) {
     return isTransactionValid(transaction) ? transactionMarks.VALID : transactionMarks.INVALID;
 }
 
-function createTransaction(event, fromStateWrapper, toStateWrapper, isTransactionValid) {
+function createTransaction(potentialAction, fromStateWrapper, toStateWrapper, isTransactionValid) {
     const transaction = {
-        name: event.name,
+        name: potentialAction.name,
         from: fromStateWrapper,
         to: toStateWrapper
     };
@@ -78,13 +78,13 @@ function build(stateMachineDefinition) {
         while (inProcessStateWrappers.length) {
             const stateWrappersForNextProcessing = [];
             inProcessStateWrappers.forEach(fromStateWrapper => {
-                stateMachineDefinition.events.forEach(event => {
+                stateMachineDefinition.potentialActions.forEach(potentialAction => {
                     const toState = _.cloneDeep(fromStateWrapper.state)
-                    event.handle(toState);
+                    potentialAction.handle(toState);
 
                     if (!_.isEqual(fromStateWrapper.state, toState)) {
                         const [toStateWrapper, isNewStateWrapper] = findOrCreateStateWrapper(achievedStateWrappers, toState, stateMachineDefinition.isStateValid);
-                        const transaction = createTransaction(event, fromStateWrapper, toStateWrapper, stateMachineDefinition.isTransactionValid);
+                        const transaction = createTransaction(potentialAction, fromStateWrapper, toStateWrapper, stateMachineDefinition.isTransactionValid);
                         
                         transactions.push(transaction);
                         checkIfStopNeededDueToTransaction(transaction, stateMachineDefinition);

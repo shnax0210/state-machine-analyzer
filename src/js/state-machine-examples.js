@@ -7,14 +7,14 @@ This is first example for emulation of working on some task.
 Here we have very simple state that consists from one variable with name "status".
 There is single initial state where status="Open".
 
-And there are a bunch of events that change "status" variable.
+And there are a bunch of potentialActions that change "status" variable.
 */
 
 const stateMachineDefinition = {
     initialStates: [{
         status: "Open"
    }],
-   events: [
+   potentialActions: [
        {
             name: "StartWorking",
             handle: (state) => { if(state.status === "Open") state.status = "InProgress" }
@@ -40,7 +40,7 @@ This is second example for emulation of working on some task.
 Here state is not just one variable but object named "task".
 This object has two fields: "status" and "assignee".
 
-And there are a bunch of events that change "status" and "assignee" variable values.
+And there are a bunch of potentialActions that change "status" and "assignee" variable values.
 
 But let's look to the states on final graph, there is one that may look not right:
 task={
@@ -58,7 +58,7 @@ const stateMachineDefinition = {
             assignee: "Nobody"
         }
    }],
-   events: [
+   potentialActions: [
        {
             name: "AssignTask",
             handle: (state) => { state.task.assignee = "Somebody" }
@@ -119,7 +119,7 @@ const stateMachineDefinition = {
        return true;
    },
    /*continueOnInvalidState: true,*/
-   events: [
+   potentialActions: [
        {
             name: "AssignTask",
             handle: (state) => { state.task.assignee = "Somebody" }
@@ -152,7 +152,7 @@ This is fourth example for emulation of working on some task.
 
 In previous example we highlighted invalid state.
 
-Here we just with "StartWorking" event handler in order to make the invalid state not possible.
+Here we just with "StartWorking" potentialAction handler in order to make the invalid state not possible.
 */
 
 const stateMachineDefinition = {
@@ -170,7 +170,7 @@ const stateMachineDefinition = {
        return true;
    },
    /*continueOnInvalidState: true,*/
-   events: [
+   potentialActions: [
        {
             name: "AssignTask",
             handle: (state) => { state.task.assignee = "Somebody" }
@@ -220,8 +220,8 @@ function calculateTotalPrice(cart) {
     return cart.price + cart.billingAddress.tax;
 }
 
-function findThreadIndexWhereEventCanBeProcessed(state, eventName) {
-    return state.threads.findIndex(thread => thread.transactions[0] === eventName);
+function findThreadIndexWherePotentialActionCanBeProcessed(state, potentialActionName) {
+    return state.threads.findIndex(thread => thread.transactions[0] === potentialActionName);
 }
 
 function cleanProcessedThread(state, threadIndex) {
@@ -234,8 +234,8 @@ function cleanProcessedThread(state, threadIndex) {
     state.threads.splice(threadIndex, 1);
 }
 
-function executeIfNeededInThread(state, eventName, func) {
-    const threadIndex = findThreadIndexWhereEventCanBeProcessed(state, eventName);
+function executeIfNeededInThread(state, potentialActionName, func) {
+    const threadIndex = findThreadIndexWherePotentialActionCanBeProcessed(state, potentialActionName);
     
     if(threadIndex >= 0) {
         func(state.threads[threadIndex]);
@@ -268,7 +268,7 @@ const stateMachineDefinition = {
        return true;
    },
    continueOnInvalidState: true,
-   events: [
+   potentialActions: [
        {
             name: "SetBillingAddress1",
             handle: (state) => { executeIfNeededInThread(state, "SetBillingAddress1", () => state.cart.billingAddress = ADDRESS1) }

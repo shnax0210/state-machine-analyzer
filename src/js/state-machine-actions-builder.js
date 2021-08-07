@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const stateMarks = require('./constans.js').stateMarks;
-const transactionMarks = require('./constans.js').transactionMarks;
+const actionMarks = require('./constans.js').actionMarks;
 
 const NOT_VALID_STEP_FAIL = "NOT_VALID_STEP_FAIL";
 
@@ -40,19 +40,19 @@ function findOrCreateStateWrapper(existingStateWrappers, state, isStateValid) {
     return [createStateWrapperAndRegister(existingStateWrappers, state, isStateValid), true];
 }
 
-function defineTransactionMark(transaction, isTransactionValid) {
-    return isTransactionValid(transaction) ? transactionMarks.VALID : transactionMarks.INVALID;
+function defineActionMark(action, isActionValid) {
+    return isActionValid(action) ? actionMarks.VALID : actionMarks.INVALID;
 }
 
-function createTransaction(potentialAction, fromStateWrapper, toStateWrapper, isTransactionValid) {
-    const transaction = {
+function createAction(potentialAction, fromStateWrapper, toStateWrapper, isActionValid) {
+    const action = {
         name: potentialAction.name,
         from: fromStateWrapper,
         to: toStateWrapper
     };
 
-    transaction.mark = defineTransactionMark(transaction, isTransactionValid);
-    return transaction;
+    action.mark = defineActionMark(action, isActionValid);
+    return action;
 }
 
 function checkIfStopNeededDueToState(stateWrapper, stateMachineDefinition) {
@@ -61,8 +61,8 @@ function checkIfStopNeededDueToState(stateWrapper, stateMachineDefinition) {
     }
 }
 
-function checkIfStopNeededDueToTransaction(transaction, stateMachineDefinition) {
-    if(!stateMachineDefinition.continueOnInvalidTransaction && _.isEqual(transaction.mark, transactionMarks.INVALID)) {
+function checkIfStopNeededDueToAction(action, stateMachineDefinition) {
+    if(!stateMachineDefinition.continueOnInvalidAction && _.isEqual(action.mark, actionMarks.INVALID)) {
         throw NOT_VALID_STEP_FAIL;
     }
 }
@@ -72,7 +72,7 @@ function build(stateMachineDefinition) {
     const achievedStateWrappers = prepareInitialStateWrappers(stateMachineDefinition.initialStates);
     let inProcessStateWrappers = _.cloneDeep(achievedStateWrappers);
 
-    const transactions = [];
+    const actions = [];
 
     try {
         while (inProcessStateWrappers.length) {
@@ -84,10 +84,10 @@ function build(stateMachineDefinition) {
 
                     if (!_.isEqual(fromStateWrapper.state, toState)) {
                         const [toStateWrapper, isNewStateWrapper] = findOrCreateStateWrapper(achievedStateWrappers, toState, stateMachineDefinition.isStateValid);
-                        const transaction = createTransaction(potentialAction, fromStateWrapper, toStateWrapper, stateMachineDefinition.isTransactionValid);
+                        const action = createAction(potentialAction, fromStateWrapper, toStateWrapper, stateMachineDefinition.isActionValid);
                         
-                        transactions.push(transaction);
-                        checkIfStopNeededDueToTransaction(transaction, stateMachineDefinition);
+                        actions.push(action);
+                        checkIfStopNeededDueToAction(action, stateMachineDefinition);
                         
                         if (isNewStateWrapper) {
                             checkIfStopNeededDueToState(toStateWrapper, stateMachineDefinition);
@@ -104,7 +104,7 @@ function build(stateMachineDefinition) {
         }
     }
     
-    return transactions;
+    return actions;
 }
 
 exports.build = build;

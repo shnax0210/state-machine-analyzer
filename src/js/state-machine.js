@@ -1,9 +1,9 @@
 const _ = require('lodash');
 
 const preprocess = require('./state-machine-definition-preprocessing.js').preprocess;
-const buildStateMachineTransactions = require('./state-machine-transactions-builder.js').build;
-const findTransactionalPathsBetweenInitialAndInvalidStates = require("./state-machine-paths.js").findTransactionalPathsBetweenInitialAndInvalidStates
-const markTransactionsAsLeadsToInvalid = require("./state-machine-transaction-paths-marker.js").markTransactionsAsLeadsToInvalid;
+const buildStateMachineActions = require('./state-machine-actions-builder.js').build;
+const findActionPathsBetweenInitialAndInvalidStates = require("./state-machine-paths.js").findActionPathsBetweenInitialAndInvalidStates
+const markActionsAsLeadsToInvalid = require("./state-machine-action-paths-marker.js").markActionsAsLeadsToInvalid;
 
 function preprocessDefinition(stateMachineDefinition) {
     stateMachineDefinition = _.cloneDeep(stateMachineDefinition);
@@ -12,14 +12,14 @@ function preprocessDefinition(stateMachineDefinition) {
 }
 
 function createStateMachine(stateMachineDefinition) {
-    const transactions = buildStateMachineTransactions(preprocessDefinition(stateMachineDefinition));
-    const transactionalPathsToInvalidStates = findTransactionalPathsBetweenInitialAndInvalidStates(transactions);
+    const actions = buildStateMachineActions(preprocessDefinition(stateMachineDefinition));
+    const actionPathsToInvalidStates = findActionPathsBetweenInitialAndInvalidStates(actions);
 
-    markTransactionsAsLeadsToInvalid(transactionalPathsToInvalidStates);
+    markActionsAsLeadsToInvalid(actionPathsToInvalidStates);
 
     return {
-        getTransactions: () => transactions,
-        getTransactionalPathsToInvalidStates: () => transactionalPathsToInvalidStates
+        getActions: () => actions,
+        getActionPathsToInvalidStates: () => actionPathsToInvalidStates
     }
 }
 

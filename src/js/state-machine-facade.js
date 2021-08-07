@@ -5,5 +5,5 @@ const renderStateMachineGraph = require('./state-machine-graph').renderStateMach
 
 exports.facade = {
     createStateMachine: (stateMachineDefinition) => createStateMachine(stateMachineDefinition),
-    renderGraph: (stateMachine) => renderStateMachineGraph(`#${constants.GRAPH_ID}`, stateMachine.getTransactions())
+    renderGraph: (stateMachine) => renderStateMachineGraph(`#${constants.GRAPH_ID}`, stateMachine.getActions())
 }

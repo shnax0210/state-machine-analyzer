@@ -1,7 +1,7 @@
 const d3 = require('d3');
 const dagreD3 = require('dagre-d3');
 const stateMarks = require('./constans.js').stateMarks;
-const transactionMarks = require('./constans.js').transactionMarks;
+const actionMarks = require('./constans.js').actionMarks;
 
 function createSvgGroup(svg) {
     return svg.append("g");
@@ -91,28 +91,28 @@ function addStatesToGraph(graph, stateWrappers) {
     }));
 }
 
-function convertTransactionMarkToStyles(mark) {
-    if(mark === transactionMarks.VALID) return ["fill: #333", "stroke: #333; stroke-width: 1.5px; fill: none;"];
-    if(mark === transactionMarks.INVALID) return ["fill: #ff0000", "stroke: #ff0000; stroke-width: 5px; fill: none;"];
-    if(mark === transactionMarks.LEADS_TO_INVALID) return ["fill: #f75723", "stroke: #f75723; stroke-width: 4px; fill: none;"];
+function convertActionMarkToStyles(mark) {
+    if(mark === actionMarks.VALID) return ["fill: #333", "stroke: #333; stroke-width: 1.5px; fill: none;"];
+    if(mark === actionMarks.INVALID) return ["fill: #ff0000", "stroke: #ff0000; stroke-width: 5px; fill: none;"];
+    if(mark === actionMarks.LEADS_TO_INVALID) return ["fill: #f75723", "stroke: #f75723; stroke-width: 4px; fill: none;"];
 
-    throw new Error(`Unknown transaction mark: ${mark}`);
+    throw new Error(`Unknown action mark: ${mark}`);
 }
 
-function addTransactionToGraph(transaction, graph) {
-    const [arrowheadStyle, style] = convertTransactionMarkToStyles(transaction.mark);
-    graph.setEdge(transaction.from.id, transaction.to.id, {
-        label: transaction.name, 
+function addActionToGraph(action, graph) {
+    const [arrowheadStyle, style] = convertActionMarkToStyles(action.mark);
+    graph.setEdge(action.from.id, action.to.id, {
+        label: action.name, 
         arrowheadStyle: arrowheadStyle, 
         style: style
     });
 }
 
-function addTransactionsToGraph(graph, transactions) {
-    transactions.forEach(transaction => addTransactionToGraph(transaction, graph));
+function addActionsToGraph(graph, actions) {
+    actions.forEach(action => addActionToGraph(action, graph));
 }
 
-function collectStates(transactions) {
+function collectStates(actions) {
     const stateIds = new Set();
     const states = [];
 
@@ -123,29 +123,29 @@ function collectStates(transactions) {
         }
     }
 
-    transactions.forEach(transaction => {
-        addState(transaction.from);
-        addState(transaction.to);
+    actions.forEach(action => {
+        addState(action.from);
+        addState(action.to);
     })
 
     return states;
 }
 
-function createStateMachineGraph(transactions) {
-    if (!transactions || !transactions.length) {
-        throw new Error(`There should be at least one transaction but: ${transactions} was provided`);
+function createStateMachineGraph(actions) {
+    if (!actions || !actions.length) {
+        throw new Error(`There should be at least one action but: ${actions} was provided`);
     }
 
     const graph = new dagreD3.graphlib.Graph().setGraph({})
 
-    addStatesToGraph(graph, collectStates(transactions));
-    addTransactionsToGraph(graph, transactions);
+    addStatesToGraph(graph, collectStates(actions));
+    addActionsToGraph(graph, actions);
 
     return graph;
 }
 
-function renderStateMachineGraph(containerSelector, stateMachineTransactions) {
-    renderGraph(containerSelector, createStateMachineGraph(stateMachineTransactions));
+function renderStateMachineGraph(containerSelector, stateMachineActions) {
+    renderGraph(containerSelector, createStateMachineGraph(stateMachineActions));
 }
 
 exports.renderStateMachineGraph = renderStateMachineGraph;

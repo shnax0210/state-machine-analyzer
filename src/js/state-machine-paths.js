@@ -1,85 +1,85 @@
 const findAllPaths = require('./graph-all-paths-between-nodes.js').findAllPaths;
 
 const stateMarks = require('./constans.js').stateMarks;
-const transactionMarks = require('./constans.js').transactionMarks;
+const actionMarks = require('./constans.js').actionMarks;
 
-function convertTransactionToGraph(transactions) {
+function convertActionToGraph(actions) {
     const graph = {};
 
-    transactions.forEach(transaction => {
-        if (!graph[transaction.from.id]) {
-            graph[transaction.from.id] = [];
+    actions.forEach(action => {
+        if (!graph[action.from.id]) {
+            graph[action.from.id] = [];
         }
 
-        if(!graph[transaction.from.id].includes(transaction.to.id)) {
-            graph[transaction.from.id].push(transaction.to.id);
+        if(!graph[action.from.id].includes(action.to.id)) {
+            graph[action.from.id].push(action.to.id);
         }
     })
     
     return graph;
 }
 
-function findTransactionsBetweenState(sourceStateId, destinationStateId, transactions) {
-    return transactions.filter(transaction => transaction.from.id === sourceStateId && transaction.to.id === destinationStateId);
+function findActionsBetweenState(sourceStateId, destinationStateId, actions) {
+    return actions.filter(action => action.from.id === sourceStateId && action.to.id === destinationStateId);
 }
 
-function createNewTransactionSequence(transactionSequence, newTransaction) {
-    const newTransactionSequence = Array.from(transactionSequence);
-    newTransactionSequence.push(newTransaction);
-    return newTransactionSequence;
+function createNewActionSequence(actionSequence, newAction) {
+    const newActionSequence = Array.from(actionSequence);
+    newActionSequence.push(newAction);
+    return newActionSequence;
 }
 
-function collectTransactionsForGraphPath(graphPath, transactions) {
-    let transactionSequences = findTransactionsBetweenState(graphPath[0], graphPath[1], transactions).map(transaction => [transaction]);
+function collectActionsForGraphPath(graphPath, actions) {
+    let actionSequences = findActionsBetweenState(graphPath[0], graphPath[1], actions).map(action => [action]);
     
     for (let pathIndex = 1; pathIndex < graphPath.length - 1; ++pathIndex) {
-        transactionSequences = findTransactionsBetweenState(graphPath[pathIndex], graphPath[pathIndex + 1], transactions)
-            .flatMap(newTransaction => transactionSequences.map(sequence => createNewTransactionSequence(sequence, newTransaction)));
+        actionSequences = findActionsBetweenState(graphPath[pathIndex], graphPath[pathIndex + 1], actions)
+            .flatMap(newAction => actionSequences.map(sequence => createNewActionSequence(sequence, newAction)));
     }
     
-    return transactionSequences;
+    return actionSequences;
 }
 
-function collectTransactionsForGraphPaths(graphPaths, transactions) {
-    return graphPaths.flatMap(graphPath => collectTransactionsForGraphPath(graphPath, transactions));
+function collectActionsForGraphPaths(graphPaths, actions) {
+    return graphPaths.flatMap(graphPath => collectActionsForGraphPath(graphPath, actions));
 }
 
-function findTransactionalPaths(sourceStateWrapper, destinationStateWrapper, transactions) {
-    const graphPaths = findAllPaths(sourceStateWrapper.id, destinationStateWrapper.id, convertTransactionToGraph(transactions));
-    return collectTransactionsForGraphPaths(graphPaths, transactions);
+function findActionalPaths(sourceStateWrapper, destinationStateWrapper, actions) {
+    const graphPaths = findAllPaths(sourceStateWrapper.id, destinationStateWrapper.id, convertActionToGraph(actions));
+    return collectActionsForGraphPaths(graphPaths, actions);
 }
 
-function findStateWrappersForInvalidTransactions(transactions) {
-    return transactions
-        .filter(transaction => transaction === transactionMarks.VALID)
-        .map(transaction => transaction.from);
+function findStateWrappersForInvalidActions(actions) {
+    return actions
+        .filter(action => action === actionMarks.VALID)
+        .map(action => action.from);
 }
 
-function findStateWrappers(transactions, extract, mark) {
-    return [...new Set(transactions
+function findStateWrappers(actions, extract, mark) {
+    return [...new Set(actions
         .map(extract)
         .filter(stateWrapper => stateWrapper.mark === mark))];
 }
 
-function findInitialStateWrappers(transactions) {
-    return findStateWrappers(transactions, transaction => transaction.from, stateMarks.INITIAL);
+function findInitialStateWrappers(actions) {
+    return findStateWrappers(actions, action => action.from, stateMarks.INITIAL);
 }
 
-function findInvalidStateWrappers(transactions) {
-    const invalidStateWrappers = findStateWrappers(transactions, transaction => transaction.to, stateMarks.INVALID);
-    const stateWrappersForInvalidTransactions = findStateWrappersForInvalidTransactions(transactions);
+function findInvalidStateWrappers(actions) {
+    const invalidStateWrappers = findStateWrappers(actions, action => action.to, stateMarks.INVALID);
+    const stateWrappersForInvalidActions = findStateWrappersForInvalidActions(actions);
 
-    return invalidStateWrappers.concat(stateWrappersForInvalidTransactions);
+    return invalidStateWrappers.concat(stateWrappersForInvalidActions);
 }
 
-function findTransactionalPathsBetweenInitialAndInvalidStates(transactions) {
-    const initialStateWrappers = findInitialStateWrappers(transactions);
-    const invalidStateWrappers = findInvalidStateWrappers(transactions);
+function findActionPathsBetweenInitialAndInvalidStates(actions) {
+    const initialStateWrappers = findInitialStateWrappers(actions);
+    const invalidStateWrappers = findInvalidStateWrappers(actions);
 
     return initialStateWrappers.flatMap(
         initialState => invalidStateWrappers.flatMap(
-            finaleState => findTransactionalPaths(initialState, finaleState, transactions)));
+            finaleState => findActionalPaths(initialState, finaleState, actions)));
 }
 
-exports.findTransactionalPaths = findTransactionalPaths;
-exports.findTransactionalPathsBetweenInitialAndInvalidStates = findTransactionalPathsBetweenInitialAndInvalidStates;
+exports.findActionalPaths = findActionalPaths;
+exports.findActionPathsBetweenInitialAndInvalidStates = findActionPathsBetweenInitialAndInvalidStates;

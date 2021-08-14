@@ -55,14 +55,14 @@ function checkAndPreprocessIsStateValidFunction(stateMachineDefinition) {
     }
 }
 
-function checkAndPreprocessIsActionValidFunction(stateMachineDefinition) {
-    if (stateMachineDefinition.isActionValid && !_.isFunction(stateMachineDefinition.isActionValid)) {
-        throw new Error(`"isActionValid" property should be a function: ${stateMachineDefinition.isActionValid}`);
+function checkAndPreprocessIsTransactionValidFunction(stateMachineDefinition) {
+    if (stateMachineDefinition.isTransactionValid && !_.isFunction(stateMachineDefinition.isTransactionValid)) {
+        throw new Error(`"isTransactionValid" property should be a function: ${stateMachineDefinition.isTransactionValid}`);
     }
 
-    if (!stateMachineDefinition.isActionValid) {
-        console.info(`"isActionValid" function was not provided, default one will be used`)
-        stateMachineDefinition.isActionValid = () => true;
+    if (!stateMachineDefinition.isTransactionValid) {
+        console.info(`"isTransactionValid" function was not provided, default one will be used`)
+        stateMachineDefinition.isTransactionValid = () => true;
     }
 }
 
@@ -71,7 +71,7 @@ function preprocess(stateMachineDefinition) {
         checkInitialStatesDefinition,
         checkCommandsDefinition,
         checkAndPreprocessIsStateValidFunction,
-        checkAndPreprocessIsActionValidFunction].forEach(check => check(stateMachineDefinition))
+        checkAndPreprocessIsTransactionValidFunction].forEach(check => check(stateMachineDefinition))
 }
 
 exports.preprocess = preprocess;

@@ -1,35 +1,35 @@
-const findAllActionalPaths = require("./state-machine-paths.js").findAllActionalPaths
+const findAllTransactionalPaths = require("./state-machine-paths.js").findAllTransactionalPaths
 
-test('Should find all actional paths', () => {
-    const actions = [
+test('Should find all transactional paths', () => {
+    const transactions = [
         {
-            name: "Action1",
+            name: "Transaction1",
             from: {id: "State1"},
             to: {id: "State2"}
         },
         {
-            name: "Action2",
+            name: "Transaction2",
             from: {id: "State1"},
             to: {id: "State3"}
         },
         {
-            name: "Action3",
+            name: "Transaction3",
             from: {id: "State2"},
             to: {id: "State3"}
         },
         {
-            name: "Action4",
+            name: "Transaction4",
             from: {id: "State1"},
             to: {id: "State2"}
         },
     ]
 
-    const result = findAllActionalPaths({id: "State1"}, {id: "State3"}, actions);
+    const result = findAllTransactionalPaths({id: "State1"}, {id: "State3"}, transactions);
 
     expect(result.length).toEqual(3);
 
-    const resultActionNames = result.map(actionSequence => actionSequence.map(action => action.name));
-    expect(resultActionNames).toEqual(expect.arrayContaining([["Action1", "Action3"]]));
-    expect(resultActionNames).toEqual(expect.arrayContaining([["Action2"]]));
-    expect(resultActionNames).toEqual(expect.arrayContaining([["Action4", "Action3"]]));
+    const resultTransactionNames = result.map(transactionSequence => transactionSequence.map(transaction => transaction.name));
+    expect(resultTransactionNames).toEqual(expect.arrayContaining([["Transaction1", "Transaction3"]]));
+    expect(resultTransactionNames).toEqual(expect.arrayContaining([["Transaction2"]]));
+    expect(resultTransactionNames).toEqual(expect.arrayContaining([["Transaction4", "Transaction3"]]));
 });

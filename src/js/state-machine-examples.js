@@ -221,13 +221,13 @@ function calculateTotalPrice(cart) {
 }
 
 function findThreadIndexWhereCommandCanBeProcessed(state, commandName) {
-    return state.threads.findIndex(thread => thread.actions[0] === commandName);
+    return state.threads.findIndex(thread => thread.transactions[0] === commandName);
 }
 
 function cleanProcessedThread(state, threadIndex) {
     const thread = state.threads[threadIndex];
-    if(thread.actions.length > 1) {
-        thread.actions.shift();
+    if(thread.transactions.length > 1) {
+        thread.transactions.shift();
         return;
     }
     
@@ -254,10 +254,10 @@ const stateMachineDefinition = {
             totalPrice: 20
         },
         threads: [{
-            actions: ["SetBillingAddress1", "CalculateCart1", "ReadPrice1", "UpdatePriceOnUi1"]
+            transactions: ["SetBillingAddress1", "CalculateCart1", "ReadPrice1", "UpdatePriceOnUi1"]
         },
         {
-            actions: ["SetBillingAddress2", "CalculateCart2", "ReadPrice2", "UpdatePriceOnUi2"]
+            transactions: ["SetBillingAddress2", "CalculateCart2", "ReadPrice2", "UpdatePriceOnUi2"]
         }]
    }],
    isStateValid(state) {

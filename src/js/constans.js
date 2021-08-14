@@ -11,7 +11,7 @@ exports.stateMarks = {
     INVALID: "InValid"
 }
 
-exports.actionMarks = {
+exports.transactionMarks = {
     VALID: "Valid",
     INVALID: "InValid",
     LEADS_TO_INVALID: "LeadsToInValid"

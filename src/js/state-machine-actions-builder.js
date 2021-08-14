@@ -44,9 +44,9 @@ function defineActionMark(action, isActionValid) {
     return isActionValid(action) ? actionMarks.VALID : actionMarks.INVALID;
 }
 
-function createAction(potentialAction, fromStateWrapper, toStateWrapper, isActionValid) {
+function createAction(command, fromStateWrapper, toStateWrapper, isActionValid) {
     const action = {
-        name: potentialAction.name,
+        name: command.name,
         from: fromStateWrapper,
         to: toStateWrapper
     };
@@ -78,13 +78,13 @@ function build(stateMachineDefinition) {
         while (inProcessStateWrappers.length) {
             const stateWrappersForNextProcessing = [];
             inProcessStateWrappers.forEach(fromStateWrapper => {
-                stateMachineDefinition.potentialActions.forEach(potentialAction => {
+                stateMachineDefinition.commands.forEach(command => {
                     const toState = _.cloneDeep(fromStateWrapper.state)
-                    potentialAction.handle(toState);
+                    command.handle(toState);
 
                     if (!_.isEqual(fromStateWrapper.state, toState)) {
                         const [toStateWrapper, isNewStateWrapper] = findOrCreateStateWrapper(achievedStateWrappers, toState, stateMachineDefinition.isStateValid);
-                        const action = createAction(potentialAction, fromStateWrapper, toStateWrapper, stateMachineDefinition.isActionValid);
+                        const action = createAction(command, fromStateWrapper, toStateWrapper, stateMachineDefinition.isActionValid);
                         
                         actions.push(action);
                         checkIfStopNeededDueToAction(action, stateMachineDefinition);

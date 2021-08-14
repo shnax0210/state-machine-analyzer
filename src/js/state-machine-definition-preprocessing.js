@@ -16,30 +16,30 @@ function checkInitialStatesDefinition(stateMachineDefinition) {
     }
 }
 
-function checkPotentialActionsDefinition(stateMachineDefinition) {
-    if (!stateMachineDefinition.potentialActions) {
-        throw new Error(`"potentialActions" property should be array but is not defined: ${stateMachineDefinition.potentialActions}`);
+function checkCommandsDefinition(stateMachineDefinition) {
+    if (!stateMachineDefinition.commands) {
+        throw new Error(`"commands" property should be array but is not defined: ${stateMachineDefinition.commands}`);
     }
 
-    if (!_.isArray(stateMachineDefinition.potentialActions)) {
-        throw new Error(`"potentialActions" property should be array but it is: ${stateMachineDefinition.potentialActions}`);
+    if (!_.isArray(stateMachineDefinition.commands)) {
+        throw new Error(`"commands" property should be array but it is: ${stateMachineDefinition.commands}`);
     }
 
-    stateMachineDefinition.potentialActions.forEach(potentialAction => {
-        if (!potentialAction.name) {
-            throw new Error(`potentialAction "name" property is not defined: ${potentialAction.name}`);
+    stateMachineDefinition.commands.forEach(command => {
+        if (!command.name) {
+            throw new Error(`command "name" property is not defined: ${command.name}`);
         }
 
-        if (!_.isString(potentialAction.name)) {
-            throw new Error(`potentialAction "name" property is not a string: ${potentialAction.name}`);
+        if (!_.isString(command.name)) {
+            throw new Error(`command "name" property is not a string: ${command.name}`);
         }
 
-        if (!potentialAction.handle) {
-            throw new Error(`potentialAction "handle" property is not defined: ${potentialAction.handle}, for potentialAction with name: ${potentialAction.name}`);
+        if (!command.handle) {
+            throw new Error(`command "handle" property is not defined: ${command.handle}, for command with name: ${command.name}`);
         }
 
-        if (!_.isFunction(potentialAction.handle)) {
-            throw new Error(`potentialAction "handle" property is not a function: ${potentialAction.handle}, for potentialAction with name: ${potentialAction.name}`);
+        if (!_.isFunction(command.handle)) {
+            throw new Error(`command "handle" property is not a function: ${command.handle}, for command with name: ${command.name}`);
         }
     });
 }
@@ -69,7 +69,7 @@ function checkAndPreprocessIsActionValidFunction(stateMachineDefinition) {
 function preprocess(stateMachineDefinition) {
     [checkBaseStateMachineDefinition,
         checkInitialStatesDefinition,
-        checkPotentialActionsDefinition,
+        checkCommandsDefinition,
         checkAndPreprocessIsStateValidFunction,
         checkAndPreprocessIsActionValidFunction].forEach(check => check(stateMachineDefinition))
 }

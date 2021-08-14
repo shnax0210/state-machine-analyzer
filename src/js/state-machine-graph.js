@@ -36,40 +36,8 @@ function renderGraph(containerSelector, graph) {
     adjustGraphSize(graph, svg);
 }
 
-function determineArrayEndOffset(array, currentOffset) {
-    if (!array || !array.length) {
-        return "";
-    }
-
-    if (array[0] && typeof array[0] === "object") {
-        return currentOffset;
-    }
-
-    return "";
-}
-
-function formatObject(object, offset) {
-    if (object instanceof Set) {
-        return `[${Array.from(object).map(element => formatObject(element, offset + "\t"))}${determineArrayEndOffset(object, offset)}]`;
-    }
-
-    if (object && typeof object === "object") {
-        return `{\n${createStateLabel(object, offset + "\t")}\n${offset}}\n`
-    }
-
-    return `${object}`
-}
-
-function createStateLabel(state, offset) {
-    if (!offset) {
-        offset = "";
-    }
-
-    return Object.entries(state)
-        .map(attributeToValue => {
-            return `${offset}${attributeToValue[0]}=${formatObject(attributeToValue[1], offset)}`
-        })
-        .join("\n");
+function createStateLabel(state) {
+    return JSON.stringify(state, null, '\t\t');
 }
 
 function convertStateMarkToColor(mark) {

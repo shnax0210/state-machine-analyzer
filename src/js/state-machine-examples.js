@@ -212,14 +212,6 @@ const ADDRESS2 = {
     tax: 10
 }
 
-function calculateTotalPrice(cart) {
-    if(!cart.billingAddress) {
-        return cart.price;
-    }
-    
-    return cart.price + cart.billingAddress.tax;
-}
-
 function createSetBillingAddressActionsChain(chainName, address) {    
     return [
        {
@@ -228,30 +220,15 @@ function createSetBillingAddressActionsChain(chainName, address) {
             chainName: chainName,
             handle: (state, chain) => { 
                 state.cart.billingAddress = address;
-                chain.addNextCommand("CalculateCart");
+                chain.state.tax = state.cart.billingAddress.tax;
+                chain.addNextCommand("UpdatePriceOnUi");
             }
-       },
-       {
-            name: "CalculateCart",
-            chainName: chainName,
-            handle: (state, chain) => { 
-                state.cart.totalPrice = calculateTotalPrice(state.cart);
-                chain.addNextCommand("ReadPrice");
-            }
-       },
-       {
-           name: "ReadPrice",
-           chainName: chainName,
-           handle: (state, chain) => { 
-               chain.state.totalPrice = state.cart.totalPrice;
-               chain.addNextCommand("UpdatePriceOnUi");
-           }
        },
        {
            name: "UpdatePriceOnUi",
            chainName: chainName,
            handle: (state, chain) => { 
-               state.ui.totalPrice = chain.state.totalPrice;
+               state.ui.tax = chain.state.tax;
            }
        }
     ]
@@ -260,16 +237,14 @@ function createSetBillingAddressActionsChain(chainName, address) {
 const stateMachineDefinition = {
     initialStates: [{
         cart: {
-            price: 20,
-            totalPrice: 20,
             billingAddress: null
         },
         ui: {
-            totalPrice: 20
+            tax: 0
         }
    }],
    isStateValid(state) {
-       if(Object.keys(state.activeChains).length === 0 && state.ui.totalPrice !== calculateTotalPrice(state.cart)) {
+       if(Object.keys(state.activeChains).length === 0 && state.ui.tax !== state.cart.billingAddress.tax) {
            return false;
        }
        

@@ -220,27 +220,41 @@ function calculateTotalPrice(cart) {
     return cart.price + cart.billingAddress.tax;
 }
 
-function findThreadIndexWhereCommandCanBeProcessed(state, commandName) {
-    return state.threads.findIndex(thread => thread.transactions[0] === commandName);
-}
-
-function cleanProcessedThread(state, threadIndex) {
-    const thread = state.threads[threadIndex];
-    if(thread.transactions.length > 1) {
-        thread.transactions.shift();
-        return;
-    }
-    
-    state.threads.splice(threadIndex, 1);
-}
-
-function executeIfNeededInThread(state, commandName, func) {
-    const threadIndex = findThreadIndexWhereCommandCanBeProcessed(state, commandName);
-    
-    if(threadIndex >= 0) {
-        func(state.threads[threadIndex]);
-        cleanProcessedThread(state, threadIndex);
-    }
+function createSetBillingAddressActionsChain(chainName, address) {    
+    return [
+       {
+            name: "SetBillingAddress",
+            isChainHead: true,
+            chainName: chainName,
+            handle: (state, chain) => { 
+                state.cart.billingAddress = address;
+                chain.addNextCommand("CalculateCart");
+            }
+       },
+       {
+            name: "CalculateCart",
+            chainName: chainName,
+            handle: (state, chain) => { 
+                state.cart.totalPrice = calculateTotalPrice(state.cart);
+                chain.addNextCommand("ReadPrice");
+            }
+       },
+       {
+           name: "ReadPrice",
+           chainName: chainName,
+           handle: (state, chain) => { 
+               chain.state.totalPrice = state.cart.totalPrice;
+               chain.addNextCommand("UpdatePriceOnUi");
+           }
+       },
+       {
+           name: "UpdatePriceOnUi",
+           chainName: chainName,
+           handle: (state, chain) => { 
+               state.ui.totalPrice = chain.state.totalPrice;
+           }
+       }
+    ]
 }
 
 const stateMachineDefinition = {
@@ -252,16 +266,10 @@ const stateMachineDefinition = {
         },
         ui: {
             totalPrice: 20
-        },
-        threads: [{
-            transactions: ["SetBillingAddress1", "CalculateCart1", "ReadPrice1", "UpdatePriceOnUi1"]
-        },
-        {
-            transactions: ["SetBillingAddress2", "CalculateCart2", "ReadPrice2", "UpdatePriceOnUi2"]
-        }]
+        }
    }],
    isStateValid(state) {
-       if(state.threads.length === 0 && state.ui.totalPrice !== calculateTotalPrice(state.cart)) {
+       if(Object.keys(state.activeChains).length === 0 && state.ui.totalPrice !== calculateTotalPrice(state.cart)) {
            return false;
        }
        
@@ -269,38 +277,8 @@ const stateMachineDefinition = {
    },
    continueOnInvalidState: true,
    commands: [
-       {
-            name: "SetBillingAddress1",
-            handle: (state) => { executeIfNeededInThread(state, "SetBillingAddress1", () => state.cart.billingAddress = ADDRESS1) }
-       },
-       {
-            name: "SetBillingAddress2",
-            handle: (state) => { executeIfNeededInThread(state, "SetBillingAddress2", () => state.cart.billingAddress = ADDRESS2) }
-       },
-       {
-            name: "CalculateCart1",
-            handle: (state) => { executeIfNeededInThread(state, "CalculateCart1", () => state.cart.totalPrice = calculateTotalPrice(state.cart)) }
-       },
-       {
-            name: "CalculateCart2",
-            handle: (state) => { executeIfNeededInThread(state, "CalculateCart2", () => state.cart.totalPrice = calculateTotalPrice(state.cart)) }
-       },
-       {
-           name: "ReadPrice1",
-           handle: (state) => { executeIfNeededInThread(state, "ReadPrice1", (thread) => thread.totalPrice = state.cart.totalPrice) }
-       },
-       {
-           name: "ReadPrice2",
-           handle: (state) => { executeIfNeededInThread(state, "ReadPrice2", (thread) => thread.totalPrice = state.cart.totalPrice) }
-       },
-       {
-           name: "UpdatePriceOnUi1",
-           handle: (state) => { executeIfNeededInThread(state, "UpdatePriceOnUi1", (thread) => state.ui.totalPrice = thread.totalPrice) }
-       },
-       {
-           name: "UpdatePriceOnUi2",
-           handle: (state) => { executeIfNeededInThread(state, "UpdatePriceOnUi2", (thread) => state.ui.totalPrice = thread.totalPrice) }
-       }
+       ...createSetBillingAddressActionsChain(1, ADDRESS1),
+       ...createSetBillingAddressActionsChain(2, ADDRESS2),
    ]
 };
 

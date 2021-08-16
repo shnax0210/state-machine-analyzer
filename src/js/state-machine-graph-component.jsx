@@ -19,7 +19,7 @@ const GraphDiv = styled.div`
             `}
 `
 
-const GraphResizeButton = styled.button`
+const GraphButton = styled.button`
             background-color: ${constants.DEFAULT_BUTTON_COLOR};
             color: white;
             border: none;
@@ -31,12 +31,27 @@ const GraphResizeButton = styled.button`
             }
 `
 
+function saveSvg(svgEl, name) {
+    svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    const svgData = svgEl.outerHTML;
+    const preface = '<?xml version="1.0" standalone="no"?>\r\n';
+    const svgBlob = new Blob([preface, svgData], {type:"image/svg+xml;charset=utf-8"});
+    const svgUrl = URL.createObjectURL(svgBlob);
+    const downloadLink = document.createElement("a");
+    downloadLink.href = svgUrl;
+    downloadLink.download = name;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+}
+
 class Graph extends React.Component {
     constructor(props) {
         super(props);
         this.state = {isFullScreen: false};
 
         this.resizeGraph = this.resizeGraph.bind(this);
+        this.saveToFile = this.saveToFile.bind(this);
     }
 
     resizeGraph() {
@@ -44,12 +59,23 @@ class Graph extends React.Component {
             isFullScreen: !prevState.isFullScreen
         }));
     }
+    
+    saveToFile() {
+        const svg = document.querySelector(`#${this.props.id} svg`);
+        if(!svg) {
+            console.warn("There is no svg to save, please build it first");
+            return;
+        }
+
+        saveSvg(svg, "state-machine.svg");
+    }
 
     render() {
         return (
             <GraphAreaDiv>
                 <GraphDiv id={this.props.id} isFullScreen={this.state.isFullScreen}></GraphDiv>
-                <GraphResizeButton onClick={this.resizeGraph}>Full screen ON/OF</GraphResizeButton>
+                <GraphButton onClick={this.resizeGraph}>Full screen ON/OF</GraphButton>
+                <GraphButton onClick={this.saveToFile}>Save to file</GraphButton>
             </GraphAreaDiv>
         );
     }

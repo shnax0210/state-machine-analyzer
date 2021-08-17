@@ -73,7 +73,7 @@ function addTransactionToGraph(transaction, graph) {
         label: transaction.name, 
         arrowheadStyle: arrowheadStyle, 
         style: style
-    });
+    }, transaction.name);
 }
 
 function addTransactionsToGraph(graph, transactions) {
@@ -104,7 +104,7 @@ function createStateMachineGraph(transactions) {
         throw new Error(`There should be at least one transaction but: ${transactions} was provided`);
     }
 
-    const graph = new dagreD3.graphlib.Graph().setGraph({})
+    const graph = new dagreD3.graphlib.Graph({ multigraph: true }).setGraph({})
 
     addStatesToGraph(graph, collectStates(transactions));
     addTransactionsToGraph(graph, transactions);

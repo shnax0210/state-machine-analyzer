@@ -33,7 +33,7 @@ const GraphButton = styled.button`
 
 function saveSvg(svgEl, name) {
     svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-    const svgData = svgEl.outerHTML;
+    const svgData = svgEl.outerHTML.replaceAll(/url\(http:[A-Za-z0-9\/:\-.]+/g, "url(");
     const preface = '<?xml version="1.0" standalone="no"?>\r\n';
     const svgBlob = new Blob([preface, svgData], {type:"image/svg+xml;charset=utf-8"});
     const svgUrl = URL.createObjectURL(svgBlob);

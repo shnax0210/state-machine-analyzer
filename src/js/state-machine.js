@@ -44,7 +44,7 @@ function createStateMachine(input) {
     const wrappedStates = collectStates(transactions);
     const transactionPathsToInvalidStates = findTransactionPathsBetweenInitialAndInvalidStates(transactions);
 
-    markTransactionsAsLeadsToInvalid(transactionPathsToInvalidStates.getAll());
+    markTransactionsAsLeadsToInvalid(collectTransactionsFromPaths(transactionPathsToInvalidStates.getAll()));
     
     return {
         getTransactions: () => transactions,

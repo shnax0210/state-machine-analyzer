@@ -10,7 +10,7 @@ function markTransaction(transaction) {
 }
 
 function markTransactionsAsLeadsToInvalid(transactionalPathsToToMark) {
-    transactionalPathsToToMark.forEach(transactionPath => transactionPath.forEach(transaction => markTransaction(transaction)));
+    transactionalPathsToToMark.forEach(transaction => markTransaction(transaction));
 }
 
 exports.markTransactionsAsLeadsToInvalid = markTransactionsAsLeadsToInvalid;

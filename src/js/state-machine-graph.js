@@ -95,7 +95,9 @@ function createStateMachineGraph(transactions) {
 }
 
 function renderStateMachineGraph(containerSelector, stateMachineTransactions) {
+    console.info("Started graph rendering")
     renderGraph(containerSelector, createStateMachineGraph(stateMachineTransactions));
+    console.info("Finished graph rendering")
 }
 
 exports.renderStateMachineGraph = renderStateMachineGraph;

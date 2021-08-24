@@ -47,7 +47,7 @@ function collectTransactionsForGraphPaths(graphPaths, transactions) {
     return graphPaths.flatMap(graphPath => collectTransactionsForGraphPath(graphPath, transactions));
 }
 
-function buildPathsResponse(paths) {
+function buildPathsResponse(paths, disableStatsPrint) {
     const result = {};
 
     function buildAllLengths() {
@@ -78,7 +78,9 @@ function buildPathsResponse(paths) {
     result.getMin = () => paths.filter(path => path.length === result.stat.minLength);
     result.getMax = () => paths.filter(path => path.length === result.stat.maxLength);
     
-    console.log(`Found paths statistic: ${JSON.stringify(result.stat)}`)
+    if(!disableStatsPrint) {
+        console.info(`Found paths statistic: ${JSON.stringify(result.stat)}`) 
+    }
 
     return result;
 }
@@ -90,6 +92,11 @@ function findTransactionalPaths(sourceStateWrappers, destinationStateWrappers, t
     
     if(!_.isArray(sourceStateWrappers)) sourceStateWrappers = [sourceStateWrappers];
     if(!_.isArray(destinationStateWrappers)) destinationStateWrappers = [destinationStateWrappers];
+
+    console.info("Searching paths between:")
+    console.info(JSON.stringify(sourceStateWrappers));
+    console.info("and");
+    console.info(JSON.stringify(destinationStateWrappers));
     
     return buildPathsResponse(sourceStateWrappers.flatMap(sourceStateWrapper => destinationStateWrappers.flatMap(destinationStateWrapper => {
         const graphPaths = findAllPaths(sourceStateWrapper.id, destinationStateWrapper.id, convertTransactionToGraph(transactions));
@@ -122,6 +129,8 @@ function findTransactionPathsBetweenInitialAndInvalidStates(transactions) {
     const initialStateWrappers = findInitialStateWrappers(transactions);
     const invalidStateWrappers = findInvalidStateWrappers(transactions);
 
+    if(!initialStateWrappers.length || !invalidStateWrappers.length) return buildPathsResponse([], true);
+    
     return findTransactionalPaths(initialStateWrappers, invalidStateWrappers, transactions);
 }
 

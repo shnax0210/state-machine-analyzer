@@ -125,10 +125,12 @@ class Editor extends React.Component {
         const logRedirector = createLogRedirector(LOG_ID, LOG_CONTAINER_ID);
         try {
             logRedirector.redirectLogsToElement();
+            console.info("--------------------Started code running--------------------");
             (new Function("facade", this.aceEditor.getValue()))(stateMachineFacade);
         } catch (err) {
             console.error(err);
         } finally {
+            console.info("--------------------Finished code running--------------------");
             logRedirector.cleanRedirection();
         }
     }

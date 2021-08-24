@@ -40,11 +40,20 @@ function buildTransactions(input) {
 }
 
 function createStateMachine(input) {
+    console.info("Started state machine building");
+    
     const transactions = buildTransactions(input);
+    console.info(`State machine contains ${transactions.length} transactions`);
+    
     const wrappedStates = collectStates(transactions);
+    console.info(`State machine contains ${wrappedStates.length} states`);
+    
     const transactionPathsToInvalidStates = findTransactionPathsBetweenInitialAndInvalidStates(transactions);
+    console.info(`State machine contains ${transactionPathsToInvalidStates.getAll().length} paths to invalid states`);
 
     markTransactionsAsLeadsToInvalid(collectTransactionsFromPaths(transactionPathsToInvalidStates.getAll()));
+
+    console.info("Finished state machine building")
     
     return {
         getTransactions: () => transactions,

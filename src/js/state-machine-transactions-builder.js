@@ -97,70 +97,64 @@ function wrapChain(chain) {
     }
 }
 
-function createChain() {
+function createChain(command) {
     return {
-        nextCommands: [],
+        isCycled: command.isChainCycled,
+        nextCommands: [command.name],
         state: {}
     }
 }
 
-function isActiveChain(chainName, state) {
+function isChainActive(chainName, state) {
     return state.activeChains && state.activeChains[chainName];
 }
 
-function isCompletedChain(chainName, state) {
-    return state.completedChains && state.completedChains[chainName];
+function isChainCompleted(chainName, state) {
+    return state.completedChains && state.completedChains.has(chainName);
 }
 
 function isChainAlreadyExist(command, state) {
-    return isActiveChain(command.chainName, state) || isCompletedChain(command.chainName, state);
+    return isChainActive(command.chainName, state) || isChainCompleted(command.chainName, state);
 }
 
-function createAndAddChain(command, state) {
-    if(isChainAlreadyExist(command, state)) {
+function tryToCreateChain(command, state) {
+    if(!command.isChainHead || isChainAlreadyExist(command, state)) {
         return null;
     }
     
-    const newChain = createChain();
+    const newChain = createChain(command);
     state.activeChains = state.activeChains || {};
     state.activeChains[command.chainName] = newChain;
     return newChain;
 }
 
-function findChainByName(name, state) {
-    return isActiveChain(name, state) ? state.activeChains[name] : null;
+function findChainByName(command, state) {
+    return command.chainName && isChainActive(command.chainName, state) ? state.activeChains[command.chainName] : null;
 }
 
 function fetchChain(command, state) {
-    if (command.isChainHead) {
-        return createAndAddChain(command, state);
-    }
-    
-    if(command.chainName) {
-        return findChainByName(command.chainName, state);
-    }
-    
-    return null;
+    return findChainByName(command, state) || tryToCreateChain(command, state);
 }
 
 function completeChain(state, command) {
-    delete state.activeChains[command.chainName];
+    const chain = state.activeChains[command.chainName];
 
-    state.completedChains = state.completedChains || {};
-    const currentNumberOfCompletedChain = state.completedChains[command.chainName] || 0;
-    state.completedChains[command.chainName] = currentNumberOfCompletedChain + 1;
+    if (!chain.isCycled) {
+        state.completedChains = state.completedChains || new Set();
+        state.completedChains.add(command.chainName);
+    }
+
+    delete state.activeChains[command.chainName];
 }
 
 function handleCommandWithChain(command, state, chainWrapper) {
     if (chainWrapper.isNextCommand(command.name)) {
         chainWrapper.removeNextCommand(command.name);
         command.handle(state, chainWrapper);
-    } else if(command.isChainHead) {
-        command.handle(state, chainWrapper);
-    }
 
-    if (!chainWrapper.hasNextCommands()) {
-        completeChain(state, command);
+        if (!chainWrapper.hasNextCommands()) {
+            completeChain(state, command);
+        }
     }
 }
 

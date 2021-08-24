@@ -5,13 +5,11 @@ const css = require('styled-components').css;
 const constants = require('./constans').constants;
 
 const GraphAreaDiv = styled.div`
-            border:2px solid #000;
-            overflow: auto;
+
 `
 
 const GraphDiv = styled.div`
             overflow: hidden;
-            height: 500px;
             
             ${props => props.isFullScreen && css`
                 height: 90vh;
@@ -73,9 +71,9 @@ class Graph extends React.Component {
     render() {
         return (
             <GraphAreaDiv>
-                <GraphDiv id={this.props.id} isFullScreen={this.state.isFullScreen}></GraphDiv>
                 <GraphButton onClick={this.resizeGraph}>Full screen ON/OF</GraphButton>
                 <GraphButton onClick={this.saveToFile}>Save to file</GraphButton>
+                <GraphDiv id={this.props.id} isFullScreen={this.state.isFullScreen}></GraphDiv>
             </GraphAreaDiv>
         );
     }

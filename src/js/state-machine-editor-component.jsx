@@ -7,6 +7,8 @@ const stateMachineFacade = require('./state-machine-facade.js').facade;
 
 const constants = require('./constans').constants;
 
+const createLogRedirector = require('./log-redirector.js').createLogRedirector
+
 function addCodeSaving(editor, variableNameForCodeSaving) {
     editor.getSession().on('change', () => window.localStorage.setItem(variableNameForCodeSaving, editor.getValue()));
 
@@ -27,42 +29,53 @@ function createAceEditor(elementId, isCodeSavingEnabled) {
 }
 
 const EDITOR_ID = "stateMachineEditorId";
+const LOG_CONTAINER_ID = "stateMachineLogId";
+const LOG_ID = "stateMachineLogId";
+
+const editorHeight = "100%";
 
 const EditorDiv = styled.div`
-    height: 700px;
+    width: 90%
 `;
 
 const RunButton = styled.button`
             background-color: ${constants.DEFAULT_BUTTON_COLOR};
-            margin: 15px 0;
-            height: 30px;
-            width: 100%;
+            height: ${editorHeight};
+            width: 10%;
             color: white;
             border: none;
-            border-radius: 12px;
             &:hover {
                 background-color: ${constants.DEFAULT_HOVERED_BUTTON_COLOR};
             }
 `;
 
-const ErrorAlertDiv = styled.button`
-            padding: 15px;
-            background-color: #f44336;
-            margin-bottom: 15px;
-            color: white;
-            border-radius: 12px;
-            width: 100%
+const EditorArea = styled.div`
+    border:2px solid #000;
+    height: 98vh;
 `
 
-class ErrorAlert extends React.Component {
-    render() {
-        return (
-            <ErrorAlertDiv>
-                <strong>Error!</strong> Please check dev tool console for details.
-            </ErrorAlertDiv>
-        );
-    }
-}
+const EditorContainer = styled.div`
+    display: flex;
+    justify-content: space-around;
+    height: 65%
+`
+
+const BottomPanelContainer = styled.div`
+    display: flex;
+    justify-content: space-around;
+    height: 35%;
+`
+
+const ConsoleContainer = styled.div`
+            overflow: auto;
+            width: 50%
+`
+
+const GraphContainer = styled.div`
+    width: 50%;
+    overflow: auto;
+    border-left:2px solid #000;
+`
 
 function loadAce() {
     return new Promise((resolve, reject) => {
@@ -83,7 +96,6 @@ function loadAce() {
 class Editor extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {hasError: false};
         this.runEditorCode = this.runEditorCode.bind(this);
     }
 
@@ -110,23 +122,33 @@ class Editor extends React.Component {
     }
     
     runEditorCode() {
+        const logRedirector = createLogRedirector(LOG_ID, LOG_CONTAINER_ID);
         try {
-            this.setState({hasError: false});
+            logRedirector.redirectLogsToElement();
             (new Function("facade", this.aceEditor.getValue()))(stateMachineFacade);
         } catch (err) {
-            this.setState({hasError: true});
-            throw err;
+            console.error(err);
+        } finally {
+            logRedirector.cleanRedirection();
         }
     }
 
     render() {
         return (
-            <div>
-                <EditorDiv id={EDITOR_ID}/>
-                <RunButton onClick={this.runEditorCode}>Run code</RunButton>
-                {this.state.hasError ? <ErrorAlert/> : ""}
-                <Graph id={constants.GRAPH_ID}/>
-            </div>
+            <EditorArea>
+                <EditorContainer>
+                    <EditorDiv id={EDITOR_ID}/>
+                    <RunButton onClick={this.runEditorCode}>Run code</RunButton>
+                </EditorContainer>
+                <BottomPanelContainer>
+                    <ConsoleContainer id={LOG_CONTAINER_ID}>
+                        <pre id={LOG_ID}></pre>
+                    </ConsoleContainer>
+                    <GraphContainer>
+                        <Graph id={constants.GRAPH_ID}/>
+                    </GraphContainer>
+                </BottomPanelContainer>
+            </EditorArea>
         );
     }
 }

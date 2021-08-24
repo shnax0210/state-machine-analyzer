@@ -1,7 +1,10 @@
+const _ = require('lodash');
+
 const findAllPaths = require('./graph-all-paths-between-nodes.js').findAllPaths;
 
 const stateMarks = require('./constans.js').stateMarks;
 const transactionMarks = require('./constans.js').transactionMarks;
+const collectStates = require('./state-machine-states-collector.js').collectStates;
 
 function convertTransactionToGraph(transactions) {
     const graph = {};
@@ -44,9 +47,54 @@ function collectTransactionsForGraphPaths(graphPaths, transactions) {
     return graphPaths.flatMap(graphPath => collectTransactionsForGraphPath(graphPath, transactions));
 }
 
-function findTransactionalPaths(sourceStateWrapper, destinationStateWrapper, transactions) {
-    const graphPaths = findAllPaths(sourceStateWrapper.id, destinationStateWrapper.id, convertTransactionToGraph(transactions));
-    return collectTransactionsForGraphPaths(graphPaths, transactions);
+function buildPathsResponse(paths) {
+    const result = {};
+
+    function buildAllLengths() {
+        const info = {};
+
+        paths.forEach(path => {
+            if(!info[path.length]) {
+                info[path.length] = {
+                    count: 0
+                };
+                info[path.length].length = path.length;
+            }
+
+            info[path.length].count = info[path.length].count + 1;
+        })
+
+        return Object.values(info).sort(pathInfo => pathInfo.length);
+    }
+
+    result.stat = {
+        count: paths.length,
+        minLength: Math.min(...paths.map(path => path.length)),
+        maxLength: Math.max(...paths.map(path => path.length)),
+        allLengths: buildAllLengths()
+    }
+
+    result.getAll = () => paths;
+    result.getMin = () => paths.filter(path => path.length === result.stat.minLength);
+    result.getMax = () => paths.filter(path => path.length === result.stat.maxLength);
+    
+    console.log(`Found paths statistic: ${JSON.stringify(result.stat)}`)
+
+    return result;
+}
+
+function findTransactionalPaths(sourceStateWrappers, destinationStateWrappers, transactions) {
+    if(!sourceStateWrappers) {
+        sourceStateWrappers = findInitialStateWrappers(transactions);
+    }
+    
+    if(!_.isArray(sourceStateWrappers)) sourceStateWrappers = [sourceStateWrappers];
+    if(!_.isArray(destinationStateWrappers)) destinationStateWrappers = [destinationStateWrappers];
+    
+    return buildPathsResponse(sourceStateWrappers.flatMap(sourceStateWrapper => destinationStateWrappers.flatMap(destinationStateWrapper => {
+        const graphPaths = findAllPaths(sourceStateWrapper.id, destinationStateWrapper.id, convertTransactionToGraph(transactions));
+        return collectTransactionsForGraphPaths(graphPaths, transactions);
+    })));
 }
 
 function findStateWrappersForInvalidTransactions(transactions) {
@@ -55,18 +103,16 @@ function findStateWrappersForInvalidTransactions(transactions) {
         .map(transaction => transaction.from);
 }
 
-function findStateWrappers(transactions, extract, mark) {
-    return [...new Set(transactions
-        .map(extract)
-        .filter(stateWrapper => stateWrapper.mark === mark))];
+function findStateWrappers(transactions, isMatched) {
+    return collectStates(transactions).filter(isMatched);
 }
 
 function findInitialStateWrappers(transactions) {
-    return findStateWrappers(transactions, transaction => transaction.from, stateMarks.INITIAL);
+    return findStateWrappers(transactions, stateWrapper => stateWrapper.mark === stateMarks.INITIAL);
 }
 
 function findInvalidStateWrappers(transactions) {
-    const invalidStateWrappers = findStateWrappers(transactions, transaction => transaction.to, stateMarks.INVALID);
+    const invalidStateWrappers = findStateWrappers(transactions, stateWrapper => stateWrapper.mark === stateMarks.INVALID);
     const stateWrappersForInvalidTransactions = findStateWrappersForInvalidTransactions(transactions);
 
     return invalidStateWrappers.concat(stateWrappersForInvalidTransactions);
@@ -76,9 +122,7 @@ function findTransactionPathsBetweenInitialAndInvalidStates(transactions) {
     const initialStateWrappers = findInitialStateWrappers(transactions);
     const invalidStateWrappers = findInvalidStateWrappers(transactions);
 
-    return initialStateWrappers.flatMap(
-        initialState => invalidStateWrappers.flatMap(
-            finaleState => findTransactionalPaths(initialState, finaleState, transactions)));
+    return findTransactionalPaths(initialStateWrappers, invalidStateWrappers, transactions);
 }
 
 exports.findTransactionalPaths = findTransactionalPaths;

@@ -1,4 +1,4 @@
-const findAllTransactionalPaths = require("./state-machine-paths.js").findAllTransactionalPaths
+const findTransactionalPaths = require("./state-machine-paths.js").findTransactionalPaths
 
 test('Should find all transactional paths', () => {
     const transactions = [
@@ -24,7 +24,7 @@ test('Should find all transactional paths', () => {
         },
     ]
 
-    const result = findAllTransactionalPaths({id: "State1"}, {id: "State3"}, transactions);
+    const result = findTransactionalPaths([{id: "State1"}], [{id: "State3"}], transactions).paths;
 
     expect(result.length).toEqual(3);
 

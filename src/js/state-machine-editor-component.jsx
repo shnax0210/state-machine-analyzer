@@ -29,7 +29,7 @@ function createAceEditor(elementId, isCodeSavingEnabled) {
 const EDITOR_ID = "stateMachineEditorId";
 
 const EditorDiv = styled.div`
-    height: 350px;
+    height: 700px;
 `;
 
 const RunButton = styled.button`

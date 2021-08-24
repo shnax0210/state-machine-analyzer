@@ -2,6 +2,7 @@ const d3 = require('d3');
 const dagreD3 = require('dagre-d3');
 const stateMarks = require('./constans.js').stateMarks;
 const transactionMarks = require('./constans.js').transactionMarks;
+const collectStates = require('./state-machine-states-collector.js').collectStates;
 
 function createSvgGroup(svg) {
     return svg.append("g");
@@ -78,25 +79,6 @@ function addTransactionToGraph(transaction, graph) {
 
 function addTransactionsToGraph(graph, transactions) {
     transactions.forEach(transaction => addTransactionToGraph(transaction, graph));
-}
-
-function collectStates(transactions) {
-    const stateIds = new Set();
-    const states = [];
-
-    function addState(state) {
-        if (!stateIds.has(state.id)) {
-            stateIds.add(state.id);
-            states.push(state);
-        }
-    }
-
-    transactions.forEach(transaction => {
-        addState(transaction.from);
-        addState(transaction.to);
-    })
-
-    return states;
 }
 
 function createStateMachineGraph(transactions) {

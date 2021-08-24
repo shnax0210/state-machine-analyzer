@@ -52,8 +52,9 @@ function createTransactionName(command) {
     return command.name;
 }
 
-function createTransaction(command, fromStateWrapper, toStateWrapper, isTransactionValid) {
+function createTransaction(id, command, fromStateWrapper, toStateWrapper, isTransactionValid) {
     const transaction = {
+        id: id,
         name: createTransactionName(command),
         from: fromStateWrapper,
         to: toStateWrapper
@@ -191,7 +192,7 @@ function build(stateMachineDefinition) {
 
                     if (!_.isEqual(fromStateWrapper.state, toState)) {
                         const [toStateWrapper, isNewStateWrapper] = findOrCreateStateWrapper(achievedStateWrappers, toState, stateMachineDefinition.isStateValid);
-                        const transaction = createTransaction(command, fromStateWrapper, toStateWrapper, stateMachineDefinition.isTransactionValid);
+                        const transaction = createTransaction(transactions.length, command, fromStateWrapper, toStateWrapper, stateMachineDefinition.isTransactionValid);
                         
                         transactions.push(transaction);
                         checkIfStopNeededDueToTransaction(transaction, stateMachineDefinition);

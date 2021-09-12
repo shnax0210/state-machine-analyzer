@@ -93,40 +93,41 @@ function loadAce() {
     });
 }
 
-class Editor extends React.Component {
-    constructor(props) {
-        super(props);
-        this.runEditorCode = this.runEditorCode.bind(this);
-    }
+function usePrevious(value) {
+    const ref = React.useRef();
+    React.useEffect(() => {
+        ref.current = value;
+    });
+    return ref.current;
+}
 
-    componentDidMount() {
-        this.aceLoad = loadAce();
-        this.aceLoad.then(() => {
-            this.aceEditor = createAceEditor(EDITOR_ID, this.props.isCodeSavingEnabled);
-            if (this.props.prepopulatedCode) {
-                this.aceEditor.setValue(this.props.prepopulatedCode);
-            }
-        })
-    }
+function Editor(props) {
+    const aceLoading = loadAce();
+    let aceEditorCreation = null;
+    let aceEditor = null;
 
-    componentDidUpdate(prevProps) {
-        if(prevProps.prepopulatedCode === this.props.prepopulatedCode) {
+    const previousPrepopulatedCode = usePrevious(props.prepopulatedCode);
+    
+    React.useEffect(() => {
+        if(aceEditorCreation === null) {
+            aceEditorCreation = aceLoading.then(() => aceEditor = createAceEditor(EDITOR_ID, props.isCodeSavingEnabled));
+        }
+
+        if(previousPrepopulatedCode === props.prepopulatedCode) {
             return;
         }
-        
-        this.aceLoad.then(() => {
-            if (this.props.prepopulatedCode) {
-                this.aceEditor.setValue(this.props.prepopulatedCode);
-            }
-        });
-    }
+
+        if (props.prepopulatedCode) {
+            aceEditorCreation.then(() => aceEditor.setValue(props.prepopulatedCode));
+        }
+    });
     
-    runEditorCode() {
+    const runEditorCode = () => {
         const logRedirector = createLogRedirector(LOG_ID, LOG_CONTAINER_ID);
         try {
             logRedirector.redirectLogsToElement();
             console.info("--------------------Started code running--------------------");
-            (new Function("facade", this.aceEditor.getValue()))(stateMachineFacade);
+            (new Function("facade", aceEditor.getValue()))(stateMachineFacade);
         } catch (err) {
             console.error(err);
         } finally {
@@ -135,24 +136,22 @@ class Editor extends React.Component {
         }
     }
 
-    render() {
-        return (
-            <EditorArea>
-                <EditorContainer>
-                    <EditorDiv id={EDITOR_ID}/>
-                    <RunButton onClick={this.runEditorCode}>Run code</RunButton>
-                </EditorContainer>
-                <BottomPanelContainer>
-                    <ConsoleContainer id={LOG_CONTAINER_ID}>
-                        <pre id={LOG_ID}></pre>
-                    </ConsoleContainer>
-                    <GraphContainer>
-                        <Graph id={constants.GRAPH_ID}/>
-                    </GraphContainer>
-                </BottomPanelContainer>
-            </EditorArea>
-        );
-    }
+    return (
+        <EditorArea>
+            <EditorContainer>
+                <EditorDiv id={EDITOR_ID}/>
+                <RunButton onClick={runEditorCode}>Run code</RunButton>
+            </EditorContainer>
+            <BottomPanelContainer>
+                <ConsoleContainer id={LOG_CONTAINER_ID}>
+                    <pre id={LOG_ID}></pre>
+                </ConsoleContainer>
+                <GraphContainer>
+                    <Graph id={constants.GRAPH_ID}/>
+                </GraphContainer>
+            </BottomPanelContainer>
+        </EditorArea>
+    );
 }
 
 exports.Editor = Editor

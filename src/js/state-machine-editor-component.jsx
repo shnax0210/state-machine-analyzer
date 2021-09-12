@@ -95,13 +95,12 @@ function loadAce() {
 
 function usePrevious(value) {
     const ref = React.useRef();
-    React.useEffect(() => {
-        ref.current = value;
-    });
+    React.useEffect(() => ref.current = value);
     return ref.current;
 }
 
 function Editor(props) {
+    const editorAreaRef = React.useRef();
     const aceLoading = loadAce();
     let aceEditorCreation = null;
     let aceEditor = null;
@@ -137,7 +136,7 @@ function Editor(props) {
     }
 
     return (
-        <EditorArea>
+        <EditorArea ref={editorAreaRef}>
             <EditorContainer>
                 <EditorDiv id={EDITOR_ID}/>
                 <RunButton onClick={runEditorCode}>Run code</RunButton>
@@ -147,7 +146,7 @@ function Editor(props) {
                     <pre id={LOG_ID}></pre>
                 </ConsoleContainer>
                 <GraphContainer>
-                    <Graph id={constants.GRAPH_ID}/>
+                    <Graph id={constants.GRAPH_ID} fetchOffsets={() => editorAreaRef.current}/>
                 </GraphContainer>
             </BottomPanelContainer>
         </EditorArea>

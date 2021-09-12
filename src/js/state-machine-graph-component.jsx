@@ -4,17 +4,23 @@ const css = require('styled-components').css;
 
 const constants = require('./constans').constants;
 
-const GraphAreaDiv = styled.div`
+const BUTTON_HEIGHT = 30;
 
+const GraphAreaDiv = styled.div`
+            ${props => props.isFullScreen && css`
+                height: ${props.offsets.offsetHeight}px;
+                width: ${props.offsets.offsetWidth}px;
+                position: absolute;
+                top: ${props.offsets.offsetTop}px;
+                left: ${props.offsets.offsetLeft}px;
+                background-color: #ffffff;
+                z-index:10;
+            `}
 `
 
 const GraphDiv = styled.div`
-            overflow: hidden;
-            
-            ${props => props.isFullScreen && css`
-                height: 90vh;
-                width: 95vw;
-            `}
+            height: calc(100% - ${BUTTON_HEIGHT}px);
+            width: 100%;
 `
 
 const GraphButton = styled.button`
@@ -22,7 +28,7 @@ const GraphButton = styled.button`
             color: white;
             border: none;
             border-radius: 12px;
-            height: 30px;
+            height: ${BUTTON_HEIGHT}px;
             margin: 5px 5px;
             &:hover {
                 background-color: ${constants.DEFAULT_HOVERED_BUTTON_COLOR};
@@ -46,15 +52,23 @@ function saveSvg(svgEl, name) {
 class Graph extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {isFullScreen: false};
+        this.state = {
+            isFullScreen: false,
+            offsets: null
+        };
 
         this.resizeGraph = this.resizeGraph.bind(this);
         this.saveToFile = this.saveToFile.bind(this);
     }
 
+    componentDidMount() {
+        window.addEventListener('resize', () => this.setState({offsets: this.props.fetchOffsets()}));
+    }
+
     resizeGraph() {
         this.setState(prevState => ({
-            isFullScreen: !prevState.isFullScreen
+            isFullScreen: !prevState.isFullScreen,
+            offsets: this.props.fetchOffsets()
         }));
     }
     
@@ -70,10 +84,10 @@ class Graph extends React.Component {
 
     render() {
         return (
-            <GraphAreaDiv>
+            <GraphAreaDiv isFullScreen={this.state.isFullScreen} offsets={this.state.offsets}>
                 <GraphButton onClick={this.resizeGraph}>Full screen ON/OF</GraphButton>
                 <GraphButton onClick={this.saveToFile}>Save to file</GraphButton>
-                <GraphDiv id={this.props.id} isFullScreen={this.state.isFullScreen}></GraphDiv>
+                <GraphDiv id={this.props.id}></GraphDiv>
             </GraphAreaDiv>
         );
     }

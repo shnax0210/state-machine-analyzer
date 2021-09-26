@@ -23,15 +23,18 @@ const ShownExampleButton = styled(ExampleButton)`
     background-color: ${constants.DEFAULT_SELECTED_BUTTON_COLOR};
 `
 
-const AvailableExamplesArea = styled.div`
+const GroupExamplesArea = styled.div`
     display: flex;
     flex-wrap: wrap;
+`
+
+const ExamplesArea = styled.div`
 `
 
 class Examples extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {shownExample: EXAMPLES[0]};
+        this.state = {shownExample: EXAMPLES[0].elements[0]};
     }
 
     showExample(example) {
@@ -39,19 +42,30 @@ class Examples extends React.Component {
     }
 
     render() {
-        const availableExamples = EXAMPLES.map(example => {
-            const ExampleButtonElement = example.name === this.state.shownExample.name ? ShownExampleButton : ExampleButton;
-            return <ExampleButtonElement onClick={() => this.showExample(example)}
-                                         key={example.name}>{example.name}</ExampleButtonElement>
+        const availableExamples = EXAMPLES.map(exampleGroup => {
+            const examples = exampleGroup.elements.map(example => {
+                const ExampleButtonElement = example.name === this.state.shownExample.name ? ShownExampleButton : ExampleButton;
+                return <ExampleButtonElement onClick={() => this.showExample(example)}
+                                             key={example.name}>{example.name}</ExampleButtonElement>
+            });
+
+            return (
+                <div key={exampleGroup.groupName}>
+                    <h3>{exampleGroup.groupName}:</h3>
+                    <GroupExamplesArea>
+                        {examples}
+                    </GroupExamplesArea>
+                </div>
+            )
         })
 
         return (
             <div>
                 <h1>Available examples:</h1>
-                <AvailableExamplesArea>
+                <ExamplesArea>
                     {availableExamples}
-                </AvailableExamplesArea>
-                <h1>Selected example code:</h1>
+                </ExamplesArea>
+                <h1>Selected example:</h1>
                 <Editor isCodeSavingEnabled={false} prepopulatedCode={this.state.shownExample.code}/>
             </div>
         );

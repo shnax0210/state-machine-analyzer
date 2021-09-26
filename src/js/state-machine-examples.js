@@ -1,7 +1,10 @@
 exports.EXAMPLES = [
     {
-        name: "1.1 Task workflow (simple state)",
-        code: `/*
+        groupName: "Simple examples",
+        elements: [
+            {
+                name: "Task workflow (simple state)",
+                code: `/*
 This is first example for emulation of working on some task. 
 
 Here we have very simple state that consists from one variable with name "status".
@@ -31,10 +34,10 @@ const stateMachineDefinition = {
 };
 
 facade.renderGraph(facade.createStateMachine(stateMachineDefinition));`
-    },
-    {
-        name: "1.2 Task workflow (object state)",
-        code: `/*
+            },
+            {
+                name: "Task workflow (object state)",
+                code: `/*
 This is second example for emulation of working on some task. 
 
 Here state is not just one variable but object named "task".
@@ -83,10 +86,10 @@ const stateMachineDefinition = {
 };
 
 facade.renderGraph(facade.createStateMachine(stateMachineDefinition));`
-    },
-    {
-        name: "1.3 Task workflow (invalid state highlighting)",
-        code: `/*
+            },
+            {
+                name: "Task workflow (invalid state highlighting)",
+                code: `/*
 This is third example for emulation of working on some task. 
 
 In previous example we found that state:
@@ -144,10 +147,10 @@ const stateMachineDefinition = {
 }
 
 facade.renderGraph(facade.createStateMachine(stateMachineDefinition));`
-    },
-    {
-        name: "1.4 Task workflow (invalid state fix)",
-        code: `/*
+            },
+            {
+                name: "Task workflow (invalid state fix)",
+                code: `/*
 This is fourth example for emulation of working on some task. 
 
 In previous example we highlighted invalid state.
@@ -195,10 +198,15 @@ const stateMachineDefinition = {
 };
 
 facade.renderGraph(facade.createStateMachine(stateMachineDefinition));`
+            }
+        ],
     },
     {
-        name: "2 Billing address update",
-        code: `/*
+        groupName: "Advantage examples",
+        elements: [
+            {
+                name: "Billing address update",
+                code: `/*
 Examples emulates updating billing address from UI by ajax calls.
 */
 
@@ -258,4 +266,6 @@ const stateMachineDefinition = {
 };
 
 facade.renderGraph(facade.createStateMachine(stateMachineDefinition));`
-    }]
+            }]
+    }
+]

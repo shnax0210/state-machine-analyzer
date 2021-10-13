@@ -1,3 +1,5 @@
 # State machine analyzer
 
-Web application that allows build state machine, play with it and show its graph
+Provides ability to model various systems as state machine 
+and check if state machine has only valid states, transactions and paths.
+
